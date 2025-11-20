@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/routes/route_navigator.dart';
+import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_boardered_field.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_textfield.dart';
@@ -85,7 +87,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 56.h,
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        RouteNavigator.pushRouted(AppRoutes.dashboard);
+                      },
                       style: ButtonStyle(
                         backgroundColor: WidgetStatePropertyAll(
                           AppColors.appPrimary,

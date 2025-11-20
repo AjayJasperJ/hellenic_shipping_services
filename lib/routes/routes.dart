@@ -1,13 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hellenic_shipping_services/screens/authentication/login_screen.dart';
+import 'package:hellenic_shipping_services/screens/dashboard/dashboard_screen.dart';
 import 'package:hellenic_shipping_services/screens/static/splash_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String dashboard = '/dashboard';
   static Map<String, WidgetBuilder> goRoutes() {
     return {
       splash: (context) => SplashScreen(),
+      dashboard: (context) => DashboardScreen(),
       login: (context) => LoginScreen(),
     };
   }
