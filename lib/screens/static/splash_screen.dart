@@ -31,44 +31,41 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppColors.appBackground),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Spacer(),
-              Image.asset(AppImages.appLogo, height: 122.h, width: 122.18.w),
-              SizedBox(height: 22.h),
-              Txt(
-                'HELLENIC',
-                size: 21.sp,
-                font: Font.bold,
-                space: 0.42,
-                height: 0.1,
-                align: TextAlign.center,
-              ),
-              SizedBox(height: 14.h),
-              Txt(
-                'Shipping services',
-                size: 16.sp,
-                font: Font.regular,
-                space: 0.2,
-                // height: 0.23,
-                align: TextAlign.center,
-              ),
-              Spacer(),
-              Txt(
-                'copyright 2025   Hellenic Shipping Services',
-                size: 10.sp,
-                font: Font.regular,
-                space: 0.2,
-                height: 0.18,
-                align: TextAlign.center,
-              ),
-              SizedBox(height: 28.h),
-            ],
-          ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Spacer(),
+            Image.asset(AppImages.appLogo, height: 122.h, width: 122.18.w),
+            SizedBox(height: 22.h),
+            Txt(
+              'HELLENIC',
+              size: 21.sp,
+              font: Font.bold,
+              space: 0.42,
+              height: 0.1,
+              align: TextAlign.center,
+            ),
+            SizedBox(height: 14.h),
+            Txt(
+              'Shipping services',
+              size: 16.sp,
+              font: Font.regular,
+              space: 0.2,
+              // height: 0.23,
+              align: TextAlign.center,
+            ),
+            Spacer(),
+            Txt(
+              'copyright 2025   Hellenic Shipping Services',
+              size: 10.sp,
+              font: Font.regular,
+              space: 0.2,
+              height: 0.18,
+              align: TextAlign.center,
+            ),
+            SizedBox(height: 28.h),
+          ],
         ),
       ),
     );

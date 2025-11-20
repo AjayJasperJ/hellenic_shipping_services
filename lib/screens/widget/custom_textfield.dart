@@ -86,7 +86,6 @@ class _TxtfieldState extends State<Txtfield> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return StatefulBuilder(
       builder: (context, setState) {
         return TextFormField(
@@ -118,30 +117,24 @@ class _TxtfieldState extends State<Txtfield> {
 
             suffixIcon: widget.suffixIcon,
             hintText: widget.hintText,
-            labelText: "field",
+            // labelText: "field",
             hintStyle: TextStyle(),
             errorStyle: TextStyle(),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.onSurface,
-                width: 1.5,
-              ),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(),
+              borderSide: BorderSide.none,
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 1.5,
-              ),
+              borderSide: BorderSide.none,
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: theme.colorScheme.error, width: .5),
+              borderSide: BorderSide.none,
             ),
           ),
         );
