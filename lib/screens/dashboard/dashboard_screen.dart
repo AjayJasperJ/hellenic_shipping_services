@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/routes/route_navigator.dart';
+import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_elevatednutton_style.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 
@@ -74,7 +76,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               height: 56.h,
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  RouteNavigator.pushRouted(
+                                    AppRoutes.createTask,
+                                  );
+                                },
                                 style: customEvelatedButtonStyle(
                                   AppColors.appPrimary,
                                 ),

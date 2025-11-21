@@ -20,6 +20,7 @@ class Txtfield extends StatefulWidget {
   final void Function(String)? onSubmit;
   final void Function(String)? onChange;
   final AutovalidateMode? autoValid;
+  final int? maxLines;
 
   const Txtfield({
     super.key,
@@ -40,6 +41,7 @@ class Txtfield extends StatefulWidget {
     this.readonly,
     this.onSubmit,
     this.autoValid,
+    this.maxLines = 1,
     this.onChange,
   });
 
@@ -89,6 +91,7 @@ class _TxtfieldState extends State<Txtfield> {
     return StatefulBuilder(
       builder: (context, setState) {
         return TextFormField(
+          maxLines: widget.maxLines,
           onChanged: widget.onChange,
           key: widget.fieldkey,
           obscureText: widget.hidepass ?? false,

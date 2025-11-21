@@ -21,7 +21,6 @@ class CustomBoarderedField extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          height: 56.h,
           width: width,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8.r),
@@ -30,6 +29,7 @@ class CustomBoarderedField extends StatelessWidget {
               width: .5,
             ),
           ),
+          constraints: BoxConstraints(minHeight: 48.h),
           child: child,
         ),
         Positioned(
