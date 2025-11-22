@@ -14,6 +14,7 @@ class HellenicApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) => MaterialApp(
+        debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,
         theme: AppThemes.lightTheme,
         navigatorKey: RouteNavigator.navigatorKey,

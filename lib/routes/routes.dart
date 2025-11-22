@@ -5,6 +5,7 @@ import 'package:hellenic_shipping_services/screens/static/splash_screen.dart';
 import 'package:hellenic_shipping_services/screens/task/apply_leave_screen.dart';
 import 'package:hellenic_shipping_services/screens/task/create_task_screen.dart';
 import 'package:hellenic_shipping_services/screens/task/task_list_screen.dart';
+import 'package:hellenic_shipping_services/screens/task/view_task_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String createTask = '/createTask';
   static const String applyleave = '/applyleave';
   static const String tasklist = '/tasklist';
+  static const String viewTask = '/viewTask';
 
   static Map<String, WidgetBuilder> goRoutes() {
     return {
@@ -22,6 +24,7 @@ class AppRoutes {
       createTask: (context) => const CreateTaskScreen(),
       applyleave: (context) => const ApplyLeaveScreen(),
       tasklist: (context) => const TaskListScreen(),
+      viewTask: (context) => const ViewTaskScreen(),
     };
   }
 
