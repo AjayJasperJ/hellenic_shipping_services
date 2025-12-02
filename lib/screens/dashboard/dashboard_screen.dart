@@ -116,7 +116,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Positioned(
                   left: 0,
                   right: 0,
-
                   top: -8.h,
 
                   child: Center(

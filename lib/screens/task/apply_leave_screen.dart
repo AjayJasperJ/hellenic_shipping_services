@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/models/leave_model.dart';
+import 'package:hellenic_shipping_services/providers/entries_provider.dart';
+import 'package:hellenic_shipping_services/providers/leave_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_boardered_field.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_textfield.dart';
+import 'package:hellenic_shipping_services/screens/widget/default_dropdown.dart';
+import 'package:hellenic_shipping_services/screens/widget/loading.dart';
+import 'package:provider/provider.dart';
 
 class ApplyLeaveScreen extends StatefulWidget {
   const ApplyLeaveScreen({super.key});
@@ -16,6 +23,8 @@ class ApplyLeaveScreen extends StatefulWidget {
 }
 
 class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
+  final _reasonController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,56 +45,74 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
             SizedBox(height: 16.h),
             Txt('Friday 20 Aug, 2025', size: 14.sp),
             SizedBox(height: 79.h),
-            GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 8.w,
-                crossAxisSpacing: 8.h,
-                mainAxisExtent: 78.h,
-              ),
-              itemCount: 6,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+            Consumer<LeaveProvider>(
+              builder: (context, value, child) {
+                final data = value.listleavetype?.items;
+                if (value.leavelistloading) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                return GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 8.w,
+                    crossAxisSpacing: 8.h,
+                    mainAxisExtent: 78.h,
+                  ),
+                  itemCount: data?.length ?? 0,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
 
-              itemBuilder: (context, index) => Stack(
-                // clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.appSecondaryContainer,
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -15,
-                    right: 0,
-                    child: Txt(
-                      "0${index + 1}",
-                      size: 57.sp,
-                      font: Font.semiBold,
-                      color: Colors.white.withOpacity(0.15),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Padding(
-                      padding: EdgeInsets.all(8.0.r),
-                      child: Txt(
-                        "Sick Leave",
-                        size: 12.sp,
-                        font: Font.regular,
-                        color: Colors.white,
+                  itemBuilder: (context, index) => Stack(
+                    // clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.appSecondaryContainer,
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        bottom: -15,
+                        right: 0,
+                        child: Txt(
+                          "0${data![index].remaining}",
+                          size: 57.sp,
+                          font: Font.semiBold,
+                          color: Colors.white.withOpacity(0.15),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0.r),
+                          child: Txt(
+                            data[index].leaveType,
+                            size: 12.sp,
+                            font: Font.regular,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             SizedBox(height: 30.h),
-            CustomBoarderedField(
-              label: 'Select Type of Leave',
-              child: Txtfield(),
+            Consumer<LeaveProvider>(
+              builder: (context, value, child) => CustomBoarderedField(
+                label: 'Select Type of Leave',
+                child: DefaultDropdown<LeaveItem>(
+                  items: value.listleavetype?.items ?? [],
+                  hint: value.leaveitem?.leaveType ?? "",
+                  onChanged: (data) {
+                    value.updateleave(data);
+                  },
+                  itemLabel: (item) => item.leaveType,
+                ),
+              ),
             ),
+
             SizedBox(height: 20.h),
             CustomBoarderedField(
               label: 'Reason for leave',
@@ -95,19 +122,38 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
             SizedBox(
               height: 56.h,
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  RouteNavigator.pushRouted(AppRoutes.tasklist);
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(AppColors.appPrimary),
-                  shape: WidgetStatePropertyAll(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(10.r),
+              child: Consumer<LeaveProvider>(
+                builder: (context, value, child) {
+                  return ElevatedButton(
+                    onPressed: () async {
+                      openDialog(context);
+                      final result = await context
+                          .read<EntriesProvider>()
+                          .applyleave(
+                            status: 'leave',
+                            leaveType: value.leaveitem?.leaveType ?? '',
+                            leaveReason: _reasonController.text,
+                          );
+                      closeDialog(context);
+                      ApiService.apiServiceStatus(context, result, (data) {
+                        if (data == 'success') {
+                          RouteNavigator.pushRouted(AppRoutes.tasklist);
+                        }
+                      });
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        AppColors.appPrimary,
+                      ),
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadiusGeometry.circular(10.r),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                child: Txt('Apply Leave', color: AppColors.appBackground),
+                    child: Txt('Apply Leave', color: AppColors.appBackground),
+                  );
+                },
               ),
             ),
           ],

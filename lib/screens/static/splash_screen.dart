@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/data/token_storage.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
@@ -25,7 +25,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> autoRoute() async {
     await Future.delayed(Duration(milliseconds: 1500));
-    RouteNavigator.pushReplacementRouted(AppRoutes.login);
+    final token = await TokenStorage.getToken();
+    token != null
+        ? RouteNavigator.pushReplacementRouted(AppRoutes.nav)
+        : RouteNavigator.pushReplacementRouted(AppRoutes.login);
   }
 
   @override

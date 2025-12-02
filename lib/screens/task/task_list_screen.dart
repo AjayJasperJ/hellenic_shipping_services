@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/providers/task_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_elevatednutton_style.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
-import 'package:hellenic_shipping_services/screens/widget/default_dropdown.dart';
+import 'package:provider/provider.dart';
 
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
@@ -112,18 +113,43 @@ class _TaskListScreenState extends State<TaskListScreen> {
             ),
 
             // List of Cards
-            ListView.separated(
-              padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 10.h),
-              itemCount: 12,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              separatorBuilder: (_, __) => SizedBox(height: 16.h),
-              itemBuilder: (_, __) => GestureDetector(
-                onTap: () {
-                  RouteNavigator.pushRouted(AppRoutes.viewTask);
-                },
-                child: const RepaintBoundary(child: TaskCardWithDiagonalBlur()),
-              ),
+            Consumer<TaskProvider>(
+              builder: (context, value, child) {
+                return ListView.separated(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 30.w,
+                    vertical: 10.h,
+                  ),
+                  itemCount: value.tasklist.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                  itemBuilder: (context, index) {
+                    final current = value.tasklist[index];
+                    return GestureDetector(
+                      onTap: () => RouteNavigator.pushRouted(
+                        AppRoutes.viewTask,
+                        arguments: {
+                          'description': current.description,
+                          'starttime': current.startTime,
+                          'endtime': current.endTime,
+                          'taskid': current.id,
+                          'date': current.date,
+                          'item': current,
+                        },
+                      ),
+                      child: RepaintBoundary(
+                        child: TaskCardWithDiagonalBlur(
+                          day: current.day,
+                          startdate: current.startTime,
+                          enddate: current.endTime,
+                          description: current.description,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
 
             SizedBox(height: 60.h),
@@ -136,7 +162,18 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
 // PERFECT DIAGONAL BLUR CARD — This is the one you wanted!
 class TaskCardWithDiagonalBlur extends StatelessWidget {
-  const TaskCardWithDiagonalBlur({super.key});
+  final String startdate;
+  final String enddate;
+  final String description;
+  final String day;
+
+  const TaskCardWithDiagonalBlur({
+    super.key,
+    required this.startdate,
+    required this.enddate,
+    required this.day,
+    required this.description,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +212,7 @@ class TaskCardWithDiagonalBlur extends StatelessWidget {
                     // Main text
                     Flexible(
                       child: Text(
-                        "Track ongoing client needs,\nensure timely responses,\nand maintain smooth project flow.",
+                        description,
                         style: TextStyle(
                           fontSize: 14.sp,
                           height: 1.5,
@@ -205,39 +242,6 @@ class TaskCardWithDiagonalBlur extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // DIAGONAL INCREASING BLUR — This is the magic
-              // IgnorePointer(
-              //   child: ClipRRect(
-              //     borderRadius: BorderRadius.circular(12.r),
-              //     child: ShaderMask(
-              //       shaderCallback: (Rect bounds) {
-              //         return LinearGradient(
-              //           begin: Alignment.topCenter,
-              //           end: Alignment.bottomCenter,
-              //           colors: [
-              //             // Colors.transparent, // top-left = no blur
-              //             Colors.white.withOpacity(0),
-              //             Colors.white.withOpacity(0.9),
-              //             Colors.white.withOpacity(
-              //               1,
-              //             ), // bottom-right = max blur
-              //           ],
-              //         ).createShader(bounds);
-              //       },
-              //       blendMode: BlendMode
-              //           .colorBurn, // keeps only blurred part where mask is white
-              //       child: BackdropFilter(
-              //         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              //         child: Container(
-              //           decoration: BoxDecoration(
-              //             color: Colors.white.withOpacity(0.25),
-              //           ),
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              // ),
               Positioned.fill(
                 child: Align(
                   alignment: Alignment.bottomCenter,
@@ -252,14 +256,16 @@ class TaskCardWithDiagonalBlur extends StatelessWidget {
                               fontSize: 14.sp,
                               color: Colors.black,
                             ),
-                            children: const [
+                            children: [
                               TextSpan(
-                                text: 'Today : ',
+                                text: '$day : ',
                                 // style: TextWeight.bold,
                               ),
                               TextSpan(
-                                text: '10:00AM - 5:30PM',
-                                style: TextStyle(color: Color(0xFF8F8F8F)),
+                                text: '$startdate-$enddate',
+                                style: const TextStyle(
+                                  color: Color(0xFF8F8F8F),
+                                ),
                               ),
                             ],
                           ),

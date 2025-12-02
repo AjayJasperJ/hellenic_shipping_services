@@ -116,7 +116,7 @@ class _TxtfieldState extends State<Txtfield> {
           autovalidateMode: widget.autoValid ?? AutovalidateMode.onUnfocus,
           decoration: InputDecoration(
             // isDense: true, // Reduce vertical height
-            contentPadding: EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+            contentPadding: EdgeInsets.symmetric(vertical: 13, horizontal: 10),
 
             suffixIcon: widget.suffixIcon,
             hintText: widget.hintText,

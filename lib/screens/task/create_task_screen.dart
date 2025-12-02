@@ -1,21 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
+import 'package:hellenic_shipping_services/core/constants/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/models/tasklist_model.dart';
+import 'package:hellenic_shipping_services/providers/entries_provider.dart';
+import 'package:hellenic_shipping_services/providers/task_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_boardered_field.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_textfield.dart';
+import 'package:hellenic_shipping_services/screens/widget/loading.dart';
+import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
+import 'package:provider/provider.dart';
 
 class CreateTaskScreen extends StatefulWidget {
-  const CreateTaskScreen({super.key});
+  final DutyItem? dutyitem;
+  const CreateTaskScreen({super.key, this.dutyitem});
 
   @override
   State<CreateTaskScreen> createState() => _CreateTaskScreenState();
 }
 
 class _CreateTaskScreenState extends State<CreateTaskScreen> {
+  final ValueNotifier<TimeOfDay?> startTime = ValueNotifier<TimeOfDay?>(null);
+  final ValueNotifier<TimeOfDay?> endTime = ValueNotifier<TimeOfDay?>(null);
+  final TextEditingController _jobIdCont = TextEditingController();
+  final TextEditingController _shipNameCont = TextEditingController();
+  final TextEditingController _locationCont = TextEditingController();
+  final TextEditingController _descriptionCont = TextEditingController();
+
+  Future<void> registerentry() async {
+    openDialog(context);
+    if (startTime.value == null) {
+      ToastManager.showSingle(context, title: 'Start time not selected');
+    } else if (endTime.value == null) {
+      ToastManager.showSingle(context, title: 'End time not selected');
+    } else {
+      final StatusResponse response = await context
+          .read<EntriesProvider>()
+          .postEnteries(
+            startTime: startTime.value!,
+            endTime: endTime.value!,
+            status: 'on_duty',
+            jobId: _jobIdCont.text,
+            description: _descriptionCont.text,
+            shipNum: _shipNameCont.text,
+            location: _locationCont.text,
+          );
+      ApiService.apiServiceStatus(context, response, (state) {});
+    }
+    closeDialog(context);
+  }
+
+  Future<void> editcontent() async {
+    final StatusResponse response = await context
+        .read<TaskProvider>()
+        .edittaskdata(
+          widget.dutyitem!.id,
+          description: widget.dutyitem!.description,
+          startTime: widget.dutyitem!.startTime,
+          endTime: widget.dutyitem!.endTime,
+        );
+    ApiService.apiServiceStatus(context, response, (state) {});
+  }
+
+  @override
+  void initState() {
+    if (widget.dutyitem != null) {
+      startTime.value = Helper.stringToTimeOfDay(widget.dutyitem!.startTime);
+      endTime.value = Helper.stringToTimeOfDay(widget.dutyitem!.endTime);
+      _jobIdCont.text = widget.dutyitem!.jobNo;
+      _shipNameCont.text = widget.dutyitem!.shipName;
+      _locationCont.text = widget.dutyitem!.location;
+      _descriptionCont.text = widget.dutyitem!.description;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,36 +105,127 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 Expanded(
                   child: CustomBoarderedField(
                     label: 'Start Time',
-                    child: Txtfield(),
+                    child: SizedBox(
+                      height: 50.h,
+                      child: ValueListenableBuilder<TimeOfDay?>(
+                        valueListenable: startTime,
+                        builder: (context, time, _) {
+                          final display = time == null
+                              ? ''
+                              : time.format(context);
+                          return GestureDetector(
+                            onTap: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: time ?? TimeOfDay.now(),
+                              );
+                              if (picked != null) startTime.value = picked;
+                            },
+                            child: Container(
+                              color: AppColors.appBackground.withValues(
+                                alpha: .0,
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 22.w),
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  display,
+                                  style: TextStyle(
+                                    color: AppColors.appPrimary,
+                                    fontSize: 20.sp,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                          // return TextButton.icon(
+                          //   onPressed:
+                          // label:
+                        },
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(width: 10.w),
                 Expanded(
                   child: CustomBoarderedField(
                     label: 'End Time',
-                    child: Txtfield(),
+                    child: SizedBox(
+                      height: 50.h,
+                      child: ValueListenableBuilder<TimeOfDay?>(
+                        valueListenable: endTime,
+                        builder: (context, time, _) {
+                          final display = time == null
+                              ? ''
+                              : time.format(context);
+                          return GestureDetector(
+                            onTap: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: time ?? TimeOfDay.now(),
+                              );
+                              if (picked != null) endTime.value = picked;
+                            },
+                            child: Container(
+                              color: AppColors.appBackground.withValues(
+                                alpha: .0,
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 22.w),
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  display,
+                                  style: TextStyle(
+                                    color: AppColors.appPrimary,
+                                    fontSize: 20.sp,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                          // return TextButton.icon(
+                          //   onPressed:
+                          // label:
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
             SizedBox(height: 20.h),
-            CustomBoarderedField(label: 'Job ID', child: Txtfield()),
+            CustomBoarderedField(
+              label: 'Job ID',
+              child: Txtfield(controller: _jobIdCont),
+            ),
             SizedBox(height: 20.h),
-            CustomBoarderedField(label: 'Shop Name', child: Txtfield()),
+            CustomBoarderedField(
+              label: 'Shop Name',
+              child: Txtfield(controller: _shipNameCont),
+            ),
             SizedBox(height: 20.h),
-            CustomBoarderedField(label: 'Location', child: Txtfield()),
+            CustomBoarderedField(
+              label: 'Location',
+              child: Txtfield(controller: _locationCont),
+            ),
             SizedBox(height: 20.h),
             CustomBoarderedField(
               label: 'Remarks',
-              child: Txtfield(maxLines: 4),
+              child: Txtfield(maxLines: 4, controller: _descriptionCont),
             ),
             SizedBox(height: 20.h),
             SizedBox(
               height: 56.h,
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  RouteNavigator.pushRouted(AppRoutes.applyleave);
+                onPressed: () async {
+                  if (widget.dutyitem != null) {
+                    await editcontent();
+                  } else {
+                    await registerentry();
+                  }
+
+                  RouteNavigator.pushRouted(AppRoutes.tasklist);
                 },
                 style: ButtonStyle(
                   backgroundColor: WidgetStatePropertyAll(AppColors.appPrimary),
