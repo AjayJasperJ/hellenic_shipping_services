@@ -52,7 +52,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                         height: 41.h,
                         width: 129.w,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            RouteNavigator.pushRouted(AppRoutes.createTask);
+                          },
                           style: customEvelatedButtonStyle(
                             AppColors.appSecondary,
                           ),

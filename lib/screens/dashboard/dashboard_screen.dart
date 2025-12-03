@@ -3,10 +3,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/providers/nav_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_elevatednutton_style.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -77,9 +79,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  RouteNavigator.pushRouted(
-                                    AppRoutes.createTask,
-                                  );
+                                  context.read<NavProvider>().setIndex(
+                                    2,
+                                  ); // Go to Task tab
                                 },
                                 style: customEvelatedButtonStyle(
                                   AppColors.appPrimary,
@@ -97,7 +99,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               height: 56.h,
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  context.read<NavProvider>().setIndex(1);
+                                },
                                 style: customEvelatedButtonStyle(
                                   AppColors.appSecondary,
                                 ),

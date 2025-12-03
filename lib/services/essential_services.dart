@@ -15,14 +15,6 @@ class EssentialServices {
     return response;
   }
 
-  static Future<http.Response> deletetaskHistory(String id) async {
-    final response = await service.delete(
-      "${UriManager.workentries}$id/",
-      withAuth: true,
-    );
-    return response;
-  }
-
   static Future<http.Response> edittaskHistory(
     String id, {
     required String description,
@@ -37,6 +29,14 @@ class EssentialServices {
         'start_time': startTime,
         'end_time': endTime,
       },
+    );
+    return response;
+  }
+
+  static Future<http.Response> deletetaskHistory(String id) async {
+    final response = await service.delete(
+      "${UriManager.workentries}$id/",
+      withAuth: true,
     );
     return response;
   }

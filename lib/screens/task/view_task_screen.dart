@@ -6,11 +6,15 @@ import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/core/utils/api_services.dart';
 import 'package:hellenic_shipping_services/models/tasklist_model.dart';
+import 'package:hellenic_shipping_services/providers/task_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_elevatednutton_style.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
+import 'package:hellenic_shipping_services/screens/widget/loading.dart';
+import 'package:provider/provider.dart';
 
 class ViewTaskScreen extends StatefulWidget {
   final DutyItem item;
@@ -35,17 +39,35 @@ class ViewTaskScreen extends StatefulWidget {
 }
 
 class _ViewTaskScreenState extends State<ViewTaskScreen> {
-  final outputs = Helper.generateStartEndOutputs(
-    startDate: "2025-12-02T16:18:51.847469Z",
-    startTime: "16:55:00",
-    endTime: "21:55:00",
-  );
-
-  // print(outputs["startOutput"]);
-  // print(outputs["endOutput"]);
+  Future deletetask() async {
+    openDialog(context);
+    final response = await context.read<TaskProvider>().deletetaskdata(
+      widget.item.id,
+    );
+    if (response.status == 'token_expaired') {
+      await ApiService().authguard(401);
+      if (!mounted) return;
+      await context.read<TaskProvider>().deletetaskdata(widget.item.id);
+    }
+    if (!mounted) return;
+    final response2 = await context.read<TaskProvider>().getTaskList();
+    if (response2.status == 'token_expaired') {
+      await ApiService().authguard(401);
+      if (!mounted) return;
+      await context.read<TaskProvider>().getTaskList();
+    }
+    RouteNavigator.pop();
+    if (!mounted) return;
+    closeDialog(context);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final outputs = Helper.generateStartEndOutputs(
+      startDate: widget.date,
+      startTime: widget.startTime,
+      endTime: widget.endTime,
+    );
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -187,7 +209,7 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                       height: 56.h,
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => deletetask(),
                         style: customEvelatedButtonStyle(
                           Color.fromARGB(255, 160, 58, 58),
                         ),

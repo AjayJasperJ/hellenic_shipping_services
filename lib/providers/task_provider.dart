@@ -65,4 +65,27 @@ class TaskProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  bool _deletetaskloading = false;
+  bool get deletetaskloading => _deletetaskloading;
+
+  Future<StatusResponse> deletetaskdata(String id) async {
+    _deletetaskloading = true;
+    notifyListeners();
+    try {
+      final response = await EssentialServices.deletetaskHistory(id);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return StatusResponse(status: 'success', message: 'task list retrived');
+      } else if (response.statusCode == 401) {
+        return StatusResponse(status: 'token_expaired', message: response.body);
+      } else {
+        return StatusResponse(status: 'failed', message: response.body);
+      }
+    } catch (_) {
+      return StatusResponse(status: 'exception', message: 'app failed');
+    } finally {
+      _deletetaskloading = false;
+      notifyListeners();
+    }
+  }
 }
