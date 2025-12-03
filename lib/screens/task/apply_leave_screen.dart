@@ -134,12 +134,15 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
                             leaveType: value.leaveitem?.leaveType ?? '',
                             leaveReason: _reasonController.text,
                           );
+                      if (result.status == 'token_expaired') {
+                        await ApiService().authguard(401);
+                        await context.read<EntriesProvider>().applyleave(
+                          status: 'leave',
+                          leaveType: value.leaveitem?.leaveType ?? '',
+                          leaveReason: _reasonController.text,
+                        );
+                      }
                       closeDialog(context);
-                      ApiService.apiServiceStatus(context, result, (data) {
-                        if (data == 'success') {
-                          RouteNavigator.pushRouted(AppRoutes.tasklist);
-                        }
-                      });
                     },
                     style: ButtonStyle(
                       backgroundColor: WidgetStatePropertyAll(

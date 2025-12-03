@@ -50,12 +50,31 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             shipNum: _shipNameCont.text,
             location: _locationCont.text,
           );
-      ApiService.apiServiceStatus(context, response, (state) {});
+      if (response.status == 'token_expaired') {
+        await ApiService().authguard(401);
+        await context.read<EntriesProvider>().postEnteries(
+          startTime: startTime.value!,
+          endTime: endTime.value!,
+          status: 'on_duty',
+          jobId: _jobIdCont.text,
+          description: _descriptionCont.text,
+          shipNum: _shipNameCont.text,
+          location: _locationCont.text,
+        );
+      }
+    }
+    final response2 = await context.read<TaskProvider>().getTaskList();
+    if (response2.status == 'token_expaired') {
+      await ApiService().authguard(401);
+      if (mounted) {
+        await context.read<TaskProvider>().getTaskList();
+      }
     }
     closeDialog(context);
   }
 
   Future<void> editcontent() async {
+    openDialog(context);
     final StatusResponse response = await context
         .read<TaskProvider>()
         .edittaskdata(
@@ -64,7 +83,23 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
           startTime: widget.dutyitem!.startTime,
           endTime: widget.dutyitem!.endTime,
         );
-    ApiService.apiServiceStatus(context, response, (state) {});
+    if (response.status == 'token_expaired') {
+      await ApiService().authguard(401);
+      await context.read<TaskProvider>().edittaskdata(
+        widget.dutyitem!.id,
+        description: widget.dutyitem!.description,
+        startTime: widget.dutyitem!.startTime,
+        endTime: widget.dutyitem!.endTime,
+      );
+    }
+    final response2 = await context.read<TaskProvider>().getTaskList();
+    if (response2.status == 'token_expaired') {
+      await ApiService().authguard(401);
+      if (mounted) {
+        await context.read<TaskProvider>().getTaskList();
+      }
+    }
+    closeDialog(context);
   }
 
   @override
@@ -200,7 +235,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             ),
             SizedBox(height: 20.h),
             CustomBoarderedField(
-              label: 'Shop Name',
+              label: 'Ship Name',
               child: Txtfield(controller: _shipNameCont),
             ),
             SizedBox(height: 20.h),
@@ -225,7 +260,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     await registerentry();
                   }
 
-                  RouteNavigator.pushRouted(AppRoutes.tasklist);
+                  RouteNavigator.pop();
                 },
                 style: ButtonStyle(
                   backgroundColor: WidgetStatePropertyAll(AppColors.appPrimary),
