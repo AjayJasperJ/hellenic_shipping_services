@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
+import 'package:hellenic_shipping_services/core/constants/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/models/employee_detail.dart';
 import 'package:hellenic_shipping_services/models/leave_model.dart';
+import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/entries_provider.dart';
 import 'package:hellenic_shipping_services/providers/leave_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
@@ -36,14 +39,19 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
             SizedBox(height: 26.h),
             Image.asset(AppImages.appLogo, height: 85.r, width: 85.r),
             SizedBox(height: 21.h),
-            Txt(
-              'Hello Vignesh!',
-              size: 21.sp,
-              font: Font.semiBold,
-              height: 0.2,
+            Selector<AuthProvider, EmployeeInfo?>(
+              selector: (_, p) => p.employeeInfo,
+              builder: (_, value, __) {
+                return Txt(
+                  'Hello ${Helper.capitalizeFirst(value?.username ?? '')}!',
+                  size: 21.sp,
+                  font: Font.semiBold,
+                  height: 0.2,
+                );
+              },
             ),
             SizedBox(height: 16.h),
-            Txt('Friday 20 Aug, 2025', size: 14.sp),
+            Txt(Helper.formatCurrentDate(), size: 14.sp),
             SizedBox(height: 79.h),
             Consumer<LeaveProvider>(
               builder: (context, value, child) {

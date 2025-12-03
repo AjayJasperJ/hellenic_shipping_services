@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
 import 'package:hellenic_shipping_services/models/auth_model.dart';
+import 'package:hellenic_shipping_services/models/employee_detail.dart';
 import 'package:hellenic_shipping_services/services/auth_services.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -47,7 +48,6 @@ class AuthProvider with ChangeNotifier {
     try {
       final response = await AuthServices.attendance(time);
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // final jsonbody = jsonDecode(response.body);
         return StatusResponse(
           status: 'success',
           message: 'Time Registered successful',
@@ -63,5 +63,42 @@ class AuthProvider with ChangeNotifier {
       _loginloading = false;
       notifyListeners();
     }
+  }
+
+  EmployeeInfo? _employeeInfo;
+  EmployeeInfo? get employeeInfo => _employeeInfo;
+
+  Future<StatusResponse> profile() async {
+    _loginloading = true;
+    _logindata = null;
+    notifyListeners();
+    try {
+      final response = await AuthServices.profile();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonbody = jsonDecode(response.body);
+        _employeeInfo = EmployeeInfo.fromJson(jsonbody);
+        return StatusResponse(
+          status: 'success',
+          message: 'Time Registered successful',
+        );
+      } else if (response.statusCode == 401) {
+        return StatusResponse(status: 'token_expaired', message: response.body);
+      } else {
+        return StatusResponse(status: 'failure', message: response.body);
+      }
+    } catch (_) {
+      return StatusResponse(status: 'exception', message: 'app failed');
+    } finally {
+      _loginloading = false;
+      notifyListeners();
+    }
+  }
+
+  void clearAllData() {
+    _loginloading = false;
+    _logindata = null;
+    _employeeInfo = null;
+
+    notifyListeners();
   }
 }

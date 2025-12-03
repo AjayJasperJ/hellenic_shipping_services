@@ -31,4 +31,16 @@ class TokenStorage {
   static Future<void> deleteToken() async {
     await _storage.delete(key: _keyToken);
   }
+
+  static Future<void> savedata(String data, String key) async {
+    await _storage.write(key: key, value: data);
+  }
+
+  static Future<String?> getdata(String key) async {
+    return await _storage.read(key: key);
+  }
+
+  static Future<void> deletedata(String key) async {
+    await _storage.delete(key: key);
+  }
 }

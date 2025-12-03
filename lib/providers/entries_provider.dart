@@ -6,19 +6,25 @@ class EntriesProvider with ChangeNotifier {
   bool _entriesloading = false;
   bool get entriesloading => _entriesloading;
 
-  Future<StatusResponse> postEnteries({
+  Future<StatusResponse> postEnteries(
+    bool idA, {
     required TimeOfDay startTime,
     required TimeOfDay endTime,
     required String status,
-    required String jobId,
+    required String? jobId,
     required String description,
-    required String shipNum,
-    required String location,
+    required String? shipNum,
+    required String? location,
+    required String holiday,
+    required String offStation,
+    required String localSite,
+    required String driv,
   }) async {
     _entriesloading = true;
     notifyListeners();
     try {
       final response = await EnteriesService.addenteries(
+        idA,
         startTime: startTime,
         endTime: endTime,
         status: status,
@@ -26,6 +32,10 @@ class EntriesProvider with ChangeNotifier {
         description: description,
         shipNum: shipNum,
         location: location,
+        driv: driv,
+        holiday: holiday,
+        localSite: localSite,
+        offStation: offStation,
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return StatusResponse(
@@ -77,5 +87,12 @@ class EntriesProvider with ChangeNotifier {
       _applyleaveloading = false;
       notifyListeners();
     }
+  }
+
+  void clearAllData() {
+    _entriesloading = false;
+    _applyleaveloading = false;
+
+    notifyListeners();
   }
 }

@@ -9,4 +9,10 @@ class NavProvider extends ChangeNotifier {
     _index = value;
     notifyListeners();
   }
+
+  void clearAllData() {
+    _index = 0;
+
+    notifyListeners();
+  }
 }

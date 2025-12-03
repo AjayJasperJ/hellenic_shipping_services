@@ -7,14 +7,19 @@ import 'package:http/http.dart' as http;
 class EnteriesService {
   static ApiService service = ApiService();
 
-  static Future<http.Response> addenteries({
+  static Future<http.Response> addenteries(
+    bool idA, {
     required TimeOfDay startTime,
     required TimeOfDay endTime,
     required String status,
-    required String jobId,
+    required String? jobId,
     required String description,
-    required String shipNum,
-    required String location,
+    required String? shipNum,
+    required String? location,
+    required String holiday,
+    required String offStation,
+    required String localSite,
+    required String driv,
   }) async {
     final response = await service.post(
       UriManager.workentries,
@@ -26,9 +31,13 @@ class EnteriesService {
         "description": description,
         "start_time": Helper.formatTime(startTime),
         "end_time": Helper.formatTime(endTime),
-        "job_no": jobId,
-        "ship_name": shipNum,
-        "location": location,
+        if (idA && jobId != null) "job_no": jobId,
+        if (idA && shipNum != null) "ship_name": shipNum,
+        if (idA && location != null) "location": location,
+        'holiday_worked': holiday,
+        'off_station': offStation,
+        'local_site': localSite,
+        'driv': driv,
       },
     );
     return response;

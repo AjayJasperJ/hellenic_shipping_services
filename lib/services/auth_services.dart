@@ -15,6 +15,13 @@ class AuthServices {
       json: false,
       body: {'username': identifier, 'password': password},
     );
+    print(response.body);
+    return response;
+  }
+
+  static Future<http.Response> profile() async {
+    final response = await service.get(UriManager.profile, withAuth: true);
+    print(response.body);
     return response;
   }
 

@@ -4,6 +4,22 @@ class RouteNavigator {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
+  static Future<T?> removeUntil<T extends Object?>(
+    String newRouteName,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) {
+    final state = navigatorKey.currentState;
+    if (state != null) {
+      return state.pushNamedAndRemoveUntil<T>(
+        newRouteName,
+        predicate,
+        arguments: arguments,
+      );
+    }
+    return Future.value(null);
+  }
+
   static Future<T?> pushRouteAndRemoveUntil<T extends Object?>(
     String newRouteName,
     RoutePredicate predicate, {
@@ -31,11 +47,10 @@ class RouteNavigator {
     return Future.value(null);
   }
 
-  static Future<T?> pushReplacementRouted<T extends Object?, TO extends Object?>(
-    String routeName, {
-    TO? result,
-    Object? arguments,
-  }) {
+  static Future<T?> pushReplacementRouted<
+    T extends Object?,
+    TO extends Object?
+  >(String routeName, {TO? result, Object? arguments}) {
     final state = navigatorKey.currentState;
     if (state != null) {
       return state.pushReplacementNamed<T, TO>(

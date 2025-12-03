@@ -2,7 +2,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
+import 'package:hellenic_shipping_services/core/constants/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/models/employee_detail.dart';
+import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/task_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
@@ -39,13 +42,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Txt(
-                            'Hello Vignesh!',
-                            size: 21.sp,
-                            font: Font.semiBold,
+                          Selector<AuthProvider, EmployeeInfo?>(
+                            selector: (_, p) => p.employeeInfo,
+                            builder: (_, value, __) {
+                              return Txt(
+                                'Hello ${Helper.capitalizeFirst(value?.username ?? '')}!',
+                                size: 21.sp,
+                                font: Font.semiBold,
+                                height: 0.2,
+                              );
+                            },
                           ),
                           SizedBox(height: 16.h),
-                          Txt('Friday 20 Aug, 2025', size: 14.sp),
+                          Txt(Helper.formatCurrentDate(), size: 14.sp),
                         ],
                       ),
                       SizedBox(
@@ -76,33 +85,91 @@ class _TaskListScreenState extends State<TaskListScreen> {
                         width: .5,
                         color: AppColors.appPrimary.withValues(alpha: .2),
                       ),
-                      Txt("All", size: 14.sp, font: Font.semiBold),
+
+                      // ALL
+                      GestureDetector(
+                        onTap: () => context.read<TaskProvider>().resetSort(),
+                        child: Txt("All", size: 14.sp, font: Font.semiBold),
+                      ),
+
                       Container(
                         height: 30.h,
                         width: .5,
                         color: AppColors.appPrimary.withValues(alpha: .2),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Txt("Start Date", size: 14.sp),
-                          SizedBox(width: 10.w),
-                          Icon(Icons.arrow_drop_down),
-                        ],
+
+                      // START DATE DROPDOWN
+                      Consumer<TaskProvider>(
+                        builder: (_, p, __) {
+                          return GestureDetector(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2100),
+                                initialDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                p.setStartDate(picked);
+                              }
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Txt(
+                                  p.selectedStartDate == null
+                                      ? "Start Date"
+                                      : "${p.selectedStartDate!.day}/${p.selectedStartDate!.month}/${p.selectedStartDate!.year}",
+                                  size: 14.sp,
+                                  font: Font.semiBold,
+                                ),
+                                SizedBox(width: 10.w),
+                                Icon(Icons.calendar_today_outlined, size: 18),
+                              ],
+                            ),
+                          );
+                        },
                       ),
+
                       Container(
                         height: 30.h,
                         width: .5,
                         color: AppColors.appPrimary.withValues(alpha: .2),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Txt("End Date", size: 14.sp),
-                          SizedBox(width: 10.w),
-                          Icon(Icons.arrow_drop_down),
-                        ],
+
+                      // END DATE DROPDOWN
+                      Consumer<TaskProvider>(
+                        builder: (_, p, __) {
+                          return GestureDetector(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2100),
+                                initialDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                p.setEndDate(picked);
+                              }
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Txt(
+                                  p.selectedEndDate == null
+                                      ? "End Date"
+                                      : "${p.selectedEndDate!.day}/${p.selectedEndDate!.month}/${p.selectedEndDate!.year}",
+                                  size: 14.sp,
+                                  font: Font.semiBold,
+                                ),
+                                SizedBox(width: 10.w),
+                                Icon(Icons.calendar_today_outlined, size: 18),
+                              ],
+                            ),
+                          );
+                        },
                       ),
+
                       Container(
                         height: 30.h,
                         width: .5,
@@ -153,11 +220,56 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 );
               },
             ),
-
-            SizedBox(height: 60.h),
           ],
         ),
       ),
+    );
+  }
+
+  void _showSortMenu(BuildContext context, String type) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (_) {
+        return Container(
+          padding: EdgeInsets.all(20.r),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Txt("Sort By", size: 18.sp, font: Font.semiBold),
+              SizedBox(height: 20.h),
+
+              if (type == "start") ...[
+                _sortTile(context, "Earliest Start Time", () {
+                  Navigator.pop(context);
+                  context.read<TaskProvider>().sortByStartTime();
+                }),
+              ],
+
+              if (type == "end") ...[
+                _sortTile(context, "Earliest End Time", () {
+                  Navigator.pop(context);
+                  context.read<TaskProvider>().sortByEndTime();
+                }),
+              ],
+
+              _sortTile(context, "By Date", () {
+                Navigator.pop(context);
+                context.read<TaskProvider>().sortByDate();
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _sortTile(BuildContext context, String title, VoidCallback onTap) {
+    return ListTile(
+      title: Txt(title, size: 15.sp),
+      onTap: onTap,
     );
   }
 }

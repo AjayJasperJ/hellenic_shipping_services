@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/screens/authentication/login_screen.dart';
-import 'package:hellenic_shipping_services/screens/bottom_nav.dart';
+import 'package:hellenic_shipping_services/screens/navigation/bottom_nav.dart';
 import 'package:hellenic_shipping_services/screens/dashboard/dashboard_screen.dart';
 import 'package:hellenic_shipping_services/screens/static/splash_screen.dart';
 import 'package:hellenic_shipping_services/screens/task/apply_leave_screen.dart';

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
+import 'package:hellenic_shipping_services/core/constants/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/data/token_storage.dart';
+import 'package:hellenic_shipping_services/models/auth_model.dart';
+import 'package:hellenic_shipping_services/models/employee_detail.dart';
+import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/nav_provider.dart';
-import 'package:hellenic_shipping_services/routes/route_navigator.dart';
-import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_elevatednutton_style.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:provider/provider.dart';
@@ -29,14 +32,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             SizedBox(height: 26.h),
             Image.asset(AppImages.appLogo, height: 85.r, width: 85.r),
             SizedBox(height: 21.h),
-            Txt(
-              'Hello Vignesh!',
-              size: 21.sp,
-              font: Font.semiBold,
-              height: 0.2,
+            Selector<AuthProvider, EmployeeInfo?>(
+              selector: (_, p) => p.employeeInfo,
+              builder: (_, value, __) {
+                return Txt(
+                  'Hello ${Helper.capitalizeFirst(value?.username ?? '')}!',
+                  size: 21.sp,
+                  font: Font.semiBold,
+                  height: 0.2,
+                );
+              },
             ),
             SizedBox(height: 16.h),
-            Txt('Friday 20 Aug, 2025', size: 14.sp),
+            Txt(Helper.formatCurrentDate(), size: 14.sp),
             SizedBox(height: 150.h),
             Stack(
               clipBehavior: Clip.none,
@@ -56,20 +64,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: Column(
                     children: [
-                      Txt('7:38:07 Hrs', font: Font.semiBold, size: 20.sp),
-                      SizedBox(height: 21.h),
-                      Container(
-                        height: 1.5,
-                        width: 174.w,
-                        color: AppColors.appSecondary,
-                      ),
-                      SizedBox(height: 30.h),
                       Txt(
                         "Today's Schedule Overview",
                         font: Font.semiBold,
                         size: 20.sp,
                       ),
                       Txt("Mark your current work status below.", size: 14.sp),
+                      SizedBox(height: 27.h),
+                      Container(
+                        height: 1.5,
+                        width: 174.w,
+                        color: AppColors.appSecondary,
+                      ),
                       SizedBox(height: 27.h),
                       Row(
                         children: [

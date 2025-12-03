@@ -71,4 +71,52 @@ class Helper {
 
     return TimeOfDay(hour: hour, minute: minute);
   }
+
+  static String capitalizeFirst(String input) {
+    if (input.isNotEmpty) {
+      return input.substring(0, 1).toUpperCase() + input.substring(1);
+    } else {
+      return '';
+    }
+  }
+
+  static String formatCurrentDate() {
+    final now = DateTime.now();
+
+    final weekday = _weekdayName(now.weekday);
+    final month = _monthShortName(now.month);
+
+    return "$weekday ${now.day} $month, ${now.year}";
+  }
+
+  static String _weekdayName(int weekday) {
+    const names = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+    return names[weekday - 1];
+  }
+
+  static String _monthShortName(int month) {
+    const names = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return names[month - 1];
+  }
 }

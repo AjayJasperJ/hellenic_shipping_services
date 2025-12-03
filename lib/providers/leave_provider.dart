@@ -41,4 +41,12 @@ class LeaveProvider with ChangeNotifier {
     _leaveItem = item;
     notifyListeners();
   }
+
+  void clearAllData() {
+    _leavelistloading = false;
+    _listleavetype = null;
+    _leaveItem = null;
+
+    notifyListeners();
+  }
 }

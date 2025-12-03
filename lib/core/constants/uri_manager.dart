@@ -5,4 +5,5 @@ class UriManager {
   static const leavebalance = 'api/leavebalances/me/';
   static const taskhistory = 'api/workentries/?status=on_duty';
   static const refresh = 'api/token/refresh/';
+  static const profile = 'api/profile/';
 }

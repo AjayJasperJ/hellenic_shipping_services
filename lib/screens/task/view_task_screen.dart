@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
+import 'package:hellenic_shipping_services/core/constants/dimensions.dart';
 import 'package:hellenic_shipping_services/core/constants/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
@@ -75,19 +76,48 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(height: 50.h),
-                      Image.asset(AppImages.appLogo, height: 77.r, width: 77.r),
-                      SizedBox(height: 20.h),
-                      Txt('Task History', size: 21.sp, font: Font.semiBold),
-                    ],
+              Stack(
+                children: [
+                  Center(
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(height: 50.h),
+                          Image.asset(
+                            AppImages.appLogo,
+                            height: 77.r,
+                            width: 77.r,
+                          ),
+                          SizedBox(height: 20.h),
+                          Txt('Task History', size: 21.sp, font: Font.semiBold),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: GestureDetector(
+                        onTap: () {
+                          RouteNavigator.pop();
+                        },
+                        child: Container(
+                          height: Dimen.r55,
+                          width: Dimen.r55,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.appSecondaryContainer,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.close),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 40.h),
               RichText(
