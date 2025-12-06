@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/constants/uri_manager.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:http/http.dart' as http;
 
 class EssentialServices {
@@ -7,29 +9,49 @@ class EssentialServices {
 
   static Future<http.Response> getleaveBalance() async {
     final response = await service.get(UriManager.leavebalance, withAuth: true);
+    debugPrint(response.body);
     return response;
   }
 
   static Future<http.Response> gettaskHistory() async {
     final response = await service.get(UriManager.taskhistory, withAuth: true);
+    debugPrint(response.body);
     return response;
   }
 
   static Future<http.Response> edittaskHistory(
-    String id, {
+    String id,
+    bool idA, {
+    required TimeOfDay startTime,
+    required TimeOfDay endTime,
+    required String status,
+    required String? jobId,
     required String description,
-    required String startTime,
-    required String endTime,
+    required String? shipNum,
+    required String? location,
+    required String holiday,
+    required String offStation,
+    required String localSite,
+    required String driv,
   }) async {
     final response = await service.put(
       "${UriManager.workentries}$id/",
       withAuth: true,
       body: {
-        'description': description,
-        'start_time': startTime,
-        'end_time': endTime,
+        "status": status,
+        "description": description,
+        "start_time": Helper.formatTime(startTime),
+        "end_time": Helper.formatTime(endTime),
+        if (idA && jobId != null) "job_no": jobId,
+        if (idA && shipNum != null) "ship_name": shipNum,
+        if (idA && location != null) "location": location,
+        'holiday_worked': holiday,
+        'off_station': offStation,
+        'local_site': localSite,
+        'driv': driv,
       },
     );
+    debugPrint(response.body);
     return response;
   }
 
@@ -38,6 +60,7 @@ class EssentialServices {
       "${UriManager.workentries}$id/",
       withAuth: true,
     );
+    debugPrint(response.body);
     return response;
   }
 }

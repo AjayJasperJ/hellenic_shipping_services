@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/constants/helper.dart';
+import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/uri_manager.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
 import 'package:http/http.dart' as http;
@@ -40,6 +40,7 @@ class EnteriesService {
         'driv': driv,
       },
     );
+    debugPrint(response.body);
     return response;
   }
 
@@ -57,7 +58,7 @@ class EnteriesService {
         "leave_reason": leaveReason,
       },
     );
-    print(response.body);
+    debugPrint(response.body);
     return response;
   }
 }

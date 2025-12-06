@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/constants/helper.dart';
+import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/uri_manager.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
@@ -15,13 +15,12 @@ class AuthServices {
       json: false,
       body: {'username': identifier, 'password': password},
     );
-    print(response.body);
+    debugPrint(response.body);
     return response;
   }
 
   static Future<http.Response> profile() async {
     final response = await service.get(UriManager.profile, withAuth: true);
-    print(response.body);
     return response;
   }
 
@@ -32,6 +31,7 @@ class AuthServices {
       json: false,
       body: {'selected_time': Helper.formatTime(loginTime)},
     );
+    debugPrint(response.body);
     return response;
   }
 
@@ -41,6 +41,16 @@ class AuthServices {
       UriManager.refresh,
       body: {'refresh': refreshToken ?? ''},
     );
+    return response;
+  }
+
+  static Future<http.Response> logout() async {
+    final access = await TokenStorage.getToken();
+    final response = await service.post(
+      UriManager.logout,
+      body: {'access': access ?? ''},
+    );
+    debugPrint(response.body);
     return response;
   }
 }

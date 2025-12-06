@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
 import 'package:hellenic_shipping_services/services/enteries_service.dart';
@@ -40,15 +42,18 @@ class EntriesProvider with ChangeNotifier {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return StatusResponse(
           status: 'success',
-          message: "successfully onduty registered",
+          message: "Task created successfully",
         );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expaired', message: response.body);
       } else {
-        return StatusResponse(status: 'failure', message: response.body);
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(response.body)['error'],
+        );
       }
     } catch (e) {
-      return StatusResponse(status: 'exception', message: "app error");
+      return StatusResponse(status: 'exception', message: "Network error");
     } finally {
       _entriesloading = false;
       notifyListeners();
@@ -74,15 +79,18 @@ class EntriesProvider with ChangeNotifier {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return StatusResponse(
           status: 'success',
-          message: 'successfully applied',
+          message: 'leave applied successfully',
         );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expaired', message: response.body);
       } else {
-        return StatusResponse(status: 'failed', message: response.body);
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(response.body)['error'],
+        );
       }
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      return StatusResponse(status: 'exception', message: 'Network error');
     } finally {
       _applyleaveloading = false;
       notifyListeners();

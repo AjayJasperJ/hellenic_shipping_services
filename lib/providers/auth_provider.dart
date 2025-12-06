@@ -28,10 +28,11 @@ class AuthProvider with ChangeNotifier {
         TokenStorage.saveToken(_logindata!.access);
         TokenStorage.saveRefresh(_logindata!.refresh);
         return StatusResponse(status: 'success', message: 'login successful');
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expaired', message: response.body);
       } else {
-        return StatusResponse(status: 'failure', message: response.body);
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(response.body)['error'],
+        );
       }
     } catch (_) {
       return StatusResponse(status: 'exception', message: 'app failed');
@@ -50,15 +51,18 @@ class AuthProvider with ChangeNotifier {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return StatusResponse(
           status: 'success',
-          message: 'Time Registered successful',
+          message: 'Logged successfully',
         );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expaired', message: response.body);
       } else {
-        return StatusResponse(status: 'failure', message: response.body);
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(response.body)['error'],
+        );
       }
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      return StatusResponse(status: 'exception', message: 'Network error');
     } finally {
       _loginloading = false;
       notifyListeners();
@@ -79,18 +83,45 @@ class AuthProvider with ChangeNotifier {
         _employeeInfo = EmployeeInfo.fromJson(jsonbody);
         return StatusResponse(
           status: 'success',
-          message: 'Time Registered successful',
+          message: 'Profile retrived successfully',
         );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expaired', message: response.body);
       } else {
-        return StatusResponse(status: 'failure', message: response.body);
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(response.body)['error'],
+        );
       }
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      return StatusResponse(status: 'exception', message: 'Network error');
     } finally {
       _loginloading = false;
       notifyListeners();
+    }
+  }
+
+  Future<StatusResponse> logout() async {
+    try {
+      final result = await AuthServices.logout();
+      if (result.statusCode == 200 || result.statusCode == 201) {
+        return StatusResponse(
+          status: 'success',
+          message: 'Successfully loggedOut',
+        );
+      } else if (result.statusCode == 401) {
+        return StatusResponse(
+          status: 'token_expaired',
+          message: 'token expaired',
+        );
+      } else {
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(result.body)['error'],
+        );
+      }
+    } catch (_) {
+      return StatusResponse(status: 'exception', message: 'Network error');
     }
   }
 

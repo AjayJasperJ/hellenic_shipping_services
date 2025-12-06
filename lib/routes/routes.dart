@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/screens/authentication/login_screen.dart';
-import 'package:hellenic_shipping_services/screens/navigation/bottom_nav.dart';
-import 'package:hellenic_shipping_services/screens/dashboard/dashboard_screen.dart';
+import 'package:hellenic_shipping_services/screens/navigation/screens/navigation_screen.dart';
+import 'package:hellenic_shipping_services/screens/home/screens/dashboard_screen.dart';
 import 'package:hellenic_shipping_services/screens/static/splash_screen.dart';
-import 'package:hellenic_shipping_services/screens/task/apply_leave_screen.dart';
-import 'package:hellenic_shipping_services/screens/task/create_task_screen.dart';
-import 'package:hellenic_shipping_services/screens/task/task_list_screen.dart';
-import 'package:hellenic_shipping_services/screens/task/view_task_screen.dart';
+import 'package:hellenic_shipping_services/screens/tasks/screens/apply_leave_screen.dart';
+import 'package:hellenic_shipping_services/screens/tasks/screens/create_task_screen.dart';
+import 'package:hellenic_shipping_services/screens/tasks/screens/task_list_screen.dart';
+import 'package:hellenic_shipping_services/screens/tasks/screens/view_task_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';

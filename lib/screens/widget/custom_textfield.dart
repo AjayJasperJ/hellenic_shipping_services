@@ -21,6 +21,7 @@ class Txtfield extends StatefulWidget {
   final void Function(String)? onChange;
   final AutovalidateMode? autoValid;
   final int? maxLines;
+  final int? minLines;
 
   const Txtfield({
     super.key,
@@ -41,7 +42,9 @@ class Txtfield extends StatefulWidget {
     this.readonly,
     this.onSubmit,
     this.autoValid,
-    this.maxLines = 1,
+    this.maxLines,
+    this.minLines = 1,
+
     this.onChange,
   });
 
@@ -77,20 +80,23 @@ class _TxtfieldState extends State<Txtfield> {
     return widget.validator?.call(value);
   }
 
-  void _handleSubmitted(String value) {
-    setState(() => _hasSubmitted = true);
-    _validate();
-
-    if (widget.nextFocusNode != null) {
-      widget.nextFocusNode!.requestFocus();
-    }
-  }
+  // Submission handler removed — logic handled inline in onFieldSubmitted
 
   @override
   Widget build(BuildContext context) {
     return StatefulBuilder(
       builder: (context, setState) {
+        final effectiveAction =
+            widget.textInputAction ??
+            ((widget.keyboardtype == TextInputType.multiline ||
+                    (widget.maxLines ?? 1) > 1)
+                ? TextInputAction.newline
+                : (widget.nextFocusNode != null
+                      ? TextInputAction.next
+                      : TextInputAction.done));
+
         return TextFormField(
+          minLines: widget.minLines,
           maxLines: widget.maxLines,
           onChanged: widget.onChange,
           key: widget.fieldkey,
@@ -98,16 +104,17 @@ class _TxtfieldState extends State<Txtfield> {
           onTap: widget.onTap,
           controller: _controller,
           focusNode: _focusNode,
-          textInputAction:
-              widget.textInputAction ??
-              (widget.nextFocusNode != null
-                  ? TextInputAction.next
-                  : TextInputAction.done),
+          textInputAction: effectiveAction,
           onFieldSubmitted:
               widget.onSubmit ??
               (value) {
                 setState(() => _hasSubmitted = true);
-                _handleSubmitted(value);
+                _validate();
+                // Only move to next focus when the action implies next
+                if (effectiveAction == TextInputAction.next &&
+                    widget.nextFocusNode != null) {
+                  widget.nextFocusNode!.requestFocus();
+                }
               },
           validator: _validator,
           readOnly: widget.readonly ?? false,

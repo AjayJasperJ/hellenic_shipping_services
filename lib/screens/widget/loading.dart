@@ -14,13 +14,15 @@ void openDialog(BuildContext context) {
     builder: (BuildContext context) {
       return PopScope(
         canPop: false,
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          child: Center(
-            child: SizedBox(
-              height: 50,
-              width: 50,
-              child: Center(child: CircularProgressIndicator()),
+        child: RepaintBoundary(
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: Center(
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: Center(child: CircularProgressIndicator()),
+              ),
             ),
           ),
         ),

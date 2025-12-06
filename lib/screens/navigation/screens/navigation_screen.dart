@@ -5,10 +5,10 @@ import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/leave_provider.dart';
 import 'package:hellenic_shipping_services/providers/nav_provider.dart';
 import 'package:hellenic_shipping_services/providers/task_provider.dart';
-import 'package:hellenic_shipping_services/screens/dashboard/dashboard_screen.dart';
-import 'package:hellenic_shipping_services/screens/navigation/bar.dart';
-import 'package:hellenic_shipping_services/screens/task/apply_leave_screen.dart';
-import 'package:hellenic_shipping_services/screens/task/task_list_screen.dart';
+import 'package:hellenic_shipping_services/screens/home/screens/dashboard_screen.dart';
+import 'package:hellenic_shipping_services/screens/navigation/widgets/custom_nav_bar.dart';
+import 'package:hellenic_shipping_services/screens/tasks/screens/apply_leave_screen.dart';
+import 'package:hellenic_shipping_services/screens/tasks/screens/task_list_screen.dart';
 import 'package:hellenic_shipping_services/screens/widget/loading.dart';
 import 'package:provider/provider.dart';
 
@@ -20,47 +20,25 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
+  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late String? username;
+
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       openDialog(context);
       username = await TokenStorage.getdata('username');
+      if (!mounted) return;
       final leaveProvider = context.read<LeaveProvider>();
       final taskProvider = context.read<TaskProvider>();
       final authProvider = context.read<AuthProvider>();
-
-      final response = await authProvider.profile();
-      if (response.status == 'token_expaired') {
-        await ApiService().authguard(401);
-        if (mounted) {
-          await authProvider.profile();
-        }
-      }
-
-      // Fetch leave list
-      final response1 = await leaveProvider.getleavelist();
-      if (response1.status == 'token_expaired') {
-        await ApiService().authguard(401);
-        if (mounted) {
-          await leaveProvider.getleavelist();
-        }
-      }
-
+      await ApiService.apiRequest(context, () => authProvider.profile());
       if (!mounted) return;
-
-      // Fetch task list
-      final response2 = await taskProvider.getTaskList();
-      if (response2.status == 'token_expaired') {
-        await ApiService().authguard(401);
-        if (mounted) {
-          await taskProvider.getTaskList();
-        }
-      }
-
+      await ApiService.apiRequest(context, () => leaveProvider.getleavelist());
+      if (!mounted) return;
+      await ApiService.apiRequest(context, () => taskProvider.getTaskList());
       if (mounted) closeDialog(context);
     });
   }

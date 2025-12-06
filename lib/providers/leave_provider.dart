@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/utils/api_services.dart';
 import 'package:hellenic_shipping_services/models/leave_model.dart';
@@ -19,15 +21,18 @@ class LeaveProvider with ChangeNotifier {
         _listleavetype = LeaveResponse.fromEncodedJson(response.body);
         return StatusResponse(
           status: 'success',
-          message: 'data retrived successfully',
+          message: 'leave retrived successfully',
         );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expaired', message: response.body);
       } else {
-        return StatusResponse(status: 'failed', message: response.body);
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(response.body)['error'],
+        );
       }
     } catch (e) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      return StatusResponse(status: 'exception', message: 'Network error');
     } finally {
       _leavelistloading = false;
       notifyListeners();

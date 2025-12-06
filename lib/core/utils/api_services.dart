@@ -3,11 +3,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/utils/credential_storage_service.dart';
 import 'package:hellenic_shipping_services/core/utils/internet_service.dart';
 import 'package:hellenic_shipping_services/core/utils/logger_service.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
-import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
 import 'package:hellenic_shipping_services/services/auth_services.dart';
 import 'package:http/http.dart' as http;
@@ -311,10 +309,20 @@ class ApiService {
         error is HandshakeException;
   }
 
-  Future authguard(int successcode) async {
-    if (successcode == 401) {
-      final response = await AuthServices.refresh();
-      TokenStorage.saveToken(jsonDecode(response.body)['access']);
+  Future authguard(int statusCode, {VoidCallback? ifsuccess}) async {
+    if (statusCode == 401) {
+      if (await TokenStorage.getRefresh() != null) {
+        final response = await AuthServices.refresh();
+        if (response.statusCode == 200) {
+          final decoded = jsonDecode(response.body);
+          final access = decoded['access'];
+          if (access != null) {
+            await TokenStorage.saveToken(access);
+          }
+
+          ifsuccess?.call();
+        }
+      }
     }
   }
 
@@ -384,6 +392,21 @@ class ApiService {
 
   void dispose() {
     _client.close();
+  }
+
+  static Future<StatusResponse> apiRequest(
+    BuildContext context,
+    Future<StatusResponse> Function() apiService,
+  ) async {
+    final StatusResponse result = await apiService();
+    if (result.status == 'token_expaired' || result.status == 'token_expired') {
+      final service = ApiService();
+      await service.authguard(401);
+      final StatusResponse retryResult = await apiService();
+      return retryResult;
+    } else {
+      return result;
+    }
   }
 }
 

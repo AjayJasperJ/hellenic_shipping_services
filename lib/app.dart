@@ -5,7 +5,8 @@ import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 
 class HellenicApp extends StatelessWidget {
-  const HellenicApp({super.key});
+  final bool enableScale;
+  const HellenicApp({super.key, required this.enableScale});
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +14,8 @@ class HellenicApp extends StatelessWidget {
       designSize: Size(440, 956),
       minTextAdapt: true,
       splitScreenMode: true,
+      enableScaleText: () => enableScale,
+      enableScaleWH: () => enableScale,
       builder: (context, child) => MaterialApp(
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,

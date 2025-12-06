@@ -74,7 +74,22 @@ class Helper {
 
   static String capitalizeFirst(String input) {
     if (input.isNotEmpty) {
-      return input.substring(0, 1).toUpperCase() + input.substring(1);
+      return input.substring(0, 1).toUpperCase() +
+          input.substring(1).toLowerCase();
+    } else {
+      return '';
+    }
+  }
+
+  static String capitalizeFirstName(String input) {
+    if (input.isNotEmpty) {
+      if (input.contains(" ")) {
+        return input.substring(0, 1).toUpperCase() +
+            input.substring(1).toLowerCase().split(" ")[0];
+      } else {
+        return input.substring(0, 1).toUpperCase() +
+            input.substring(1).toLowerCase();
+      }
     } else {
       return '';
     }

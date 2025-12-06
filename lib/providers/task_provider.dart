@@ -43,7 +43,7 @@ class TaskProvider with ChangeNotifier {
         notifyListeners();
         return StatusResponse(
           status: 'success',
-          message: 'task list retrieved',
+          message: 'list retrieved successfully',
         );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expired', message: response.body);
@@ -150,10 +150,19 @@ class TaskProvider with ChangeNotifier {
 
   // ---------------- EDIT TASK -----------------
   Future<StatusResponse> edittaskdata(
-    String id, {
+    String id,
+    bool idA, {
+    required TimeOfDay startTime,
+    required TimeOfDay endTime,
+    required String status,
+    required String? jobId,
     required String description,
-    required String startTime,
-    required String endTime,
+    required String? shipNum,
+    required String? location,
+    required String holiday,
+    required String offStation,
+    required String localSite,
+    required String driv,
   }) async {
     _edittaskloading = true;
     notifyListeners();
@@ -161,20 +170,35 @@ class TaskProvider with ChangeNotifier {
     try {
       final response = await EssentialServices.edittaskHistory(
         id,
+        idA,
         description: description,
         endTime: endTime,
         startTime: startTime,
+        jobId: jobId,
+        location: location,
+        shipNum: shipNum,
+        status: status,
+        driv: driv,
+        holiday: holiday,
+        localSite: localSite,
+        offStation: offStation,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return StatusResponse(status: 'success', message: 'task updated');
+        return StatusResponse(
+          status: 'success',
+          message: 'Task updated successfully',
+        );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expired', message: response.body);
       } else {
-        return StatusResponse(status: 'failed', message: response.body);
+        return StatusResponse(
+          status: 'failure',
+          message: jsonDecode(response.body)['error'],
+        );
       }
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      return StatusResponse(status: 'exception', message: 'Network error');
     } finally {
       _edittaskloading = false;
       notifyListeners();
@@ -190,14 +214,17 @@ class TaskProvider with ChangeNotifier {
       final response = await EssentialServices.deletetaskHistory(id);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return StatusResponse(status: 'success', message: 'task deleted');
+        return StatusResponse(
+          status: 'success',
+          message: 'Task deleted successfully',
+        );
       } else if (response.statusCode == 401) {
         return StatusResponse(status: 'token_expired', message: response.body);
       } else {
-        return StatusResponse(status: 'failed', message: response.body);
+        return StatusResponse(status: 'failure', message: response.body);
       }
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      return StatusResponse(status: 'exception', message: 'Network error');
     } finally {
       _deletetaskloading = false;
       notifyListeners();
