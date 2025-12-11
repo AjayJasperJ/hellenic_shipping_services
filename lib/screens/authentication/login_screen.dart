@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         ApiService.apiServiceStatus(context, response2, (state) {
           if (state == 'success') {
-            RouteNavigator.pushRouted(AppRoutes.nav);
+            RouteNavigator.pushReplacementRouted(AppRoutes.nav);
           }
         });
       } else if (loginTime.value == null) {

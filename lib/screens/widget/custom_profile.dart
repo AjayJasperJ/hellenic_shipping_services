@@ -193,7 +193,7 @@ class CustomProfileImage extends StatelessWidget {
             child: CircularProgressIndicator(
               strokeWidth: 2.8,
               valueColor: AlwaysStoppedAnimation<Color>(
-                Colors.white.withOpacity(0.8),
+                Colors.white.withValues(alpha: .8),
               ),
             ),
           ),

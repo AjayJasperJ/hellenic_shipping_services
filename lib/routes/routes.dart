@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/screens/authentication/login_screen.dart';
 import 'package:hellenic_shipping_services/screens/navigation/screens/navigation_screen.dart';
 import 'package:hellenic_shipping_services/screens/home/screens/dashboard_screen.dart';
+import 'package:hellenic_shipping_services/screens/static/log_screen.dart';
 import 'package:hellenic_shipping_services/screens/static/splash_screen.dart';
 import 'package:hellenic_shipping_services/screens/tasks/screens/apply_leave_screen.dart';
 import 'package:hellenic_shipping_services/screens/tasks/screens/create_task_screen.dart';
@@ -18,6 +18,7 @@ class AppRoutes {
   static const String tasklist = '/tasklist';
   static const String viewTask = '/viewTask';
   static const String nav = '/nav';
+  static const String log = '/logger';
 
   static Map<String, WidgetBuilder> goRoutes() {
     return {
@@ -28,6 +29,7 @@ class AppRoutes {
       applyleave: (context) => const ApplyLeaveScreen(),
       tasklist: (context) => const TaskListScreen(),
       nav: (context) => BottomNav(),
+      log: (context) => LogScreen(),
     };
   }
 

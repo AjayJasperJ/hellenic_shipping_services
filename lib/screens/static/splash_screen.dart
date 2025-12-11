@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
+import 'package:hellenic_shipping_services/core/utils/global_logger.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
@@ -16,19 +17,24 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    super.initState();
-    WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
-      precacheImage(AssetImage(AppImages.appLogo), context);
-      autoRoute();
-    });
+    try {
+      super.initState();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        precacheImage(AssetImage(AppImages.appLogo), context);
+        autoRoute();
+      });
+    } catch (e) {
+      gLogger.error('splash : $e');
+    }
   }
 
   Future<void> autoRoute() async {
     await Future.delayed(Duration(milliseconds: 1500));
     final token = await TokenStorage.getToken();
+    if (!mounted) return;
     token != null
-        ? RouteNavigator.pushReplacementRouted(AppRoutes.nav)
-        : RouteNavigator.pushReplacementRouted(AppRoutes.login);
+        ? Navigator.of(context).pushReplacementNamed(AppRoutes.nav)
+        : Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
   @override

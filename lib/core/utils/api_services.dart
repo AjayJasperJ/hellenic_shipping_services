@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/utils/internet_service.dart';
 import 'package:hellenic_shipping_services/core/utils/logger_service.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
+import 'package:hellenic_shipping_services/routes/route_navigator.dart';
+import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
 import 'package:hellenic_shipping_services/services/auth_services.dart';
 import 'package:http/http.dart' as http;
@@ -321,6 +323,10 @@ class ApiService {
           }
 
           ifsuccess?.call();
+        } else if (response.statusCode == 401) {
+          await TokenStorage.deleteRefresh();
+          await TokenStorage.deleteToken();
+          RouteNavigator.pushReplacementRouted(AppRoutes.login);
         }
       }
     }

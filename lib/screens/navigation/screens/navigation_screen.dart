@@ -20,7 +20,6 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late String? username;
 
@@ -34,12 +33,20 @@ class _BottomNavState extends State<BottomNav> {
       final leaveProvider = context.read<LeaveProvider>();
       final taskProvider = context.read<TaskProvider>();
       final authProvider = context.read<AuthProvider>();
-      await ApiService.apiRequest(context, () => authProvider.profile());
-      if (!mounted) return;
-      await ApiService.apiRequest(context, () => leaveProvider.getleavelist());
-      if (!mounted) return;
-      await ApiService.apiRequest(context, () => taskProvider.getTaskList());
-      if (mounted) closeDialog(context);
+      final isProfile = await ApiService.apiRequest(
+        context,
+        () => authProvider.profile(),
+      );
+      if (isProfile.status == 'success') {
+        if (!mounted) return;
+        await ApiService.apiRequest(
+          context,
+          () => leaveProvider.getleavelist(),
+        );
+        if (!mounted) return;
+        await ApiService.apiRequest(context, () => taskProvider.getTaskList());
+        if (mounted) closeDialog(context);
+      }
     });
   }
 

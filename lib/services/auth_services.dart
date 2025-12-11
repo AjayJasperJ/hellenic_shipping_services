@@ -41,6 +41,7 @@ class AuthServices {
       UriManager.refresh,
       body: {'refresh': refreshToken ?? ''},
     );
+    debugPrint(response.body);
     return response;
   }
 
