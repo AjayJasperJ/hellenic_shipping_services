@@ -1,25 +1,77 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/constants/uri_manager.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/api_client.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/api_error.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/api_response.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
-import 'package:http/http.dart' as http;
+import 'package:hellenic_shipping_services/redesigned_model/leave_model.dart';
+import 'package:hellenic_shipping_services/redesigned_model/tasklist_model.dart';
 
 class EssentialServices {
-  static ApiService service = ApiService();
+  static ApiClient client = ApiClient();
 
-  static Future<http.Response> getleaveBalance() async {
-    final response = await service.get(UriManager.leavebalance, withAuth: true);
-    debugPrint(response.body);
-    return response;
+  static Future<ApiResult<LeaveResponse>> getleaveBalance({
+    CancelToken? cancelToken,
+  }) async {
+    final ApiClient service = ApiClient();
+
+    final result = await service.get(
+      UriManager.leavebalance,
+      cancelToken: cancelToken,
+      withAuth: false,
+    );
+
+    return result.when(
+      success: (res) {
+        try {
+          return ApiResult.success(
+            LeaveResponse.fromJson(jsonDecode(res.data)),
+          );
+        } catch (e) {
+          return ApiResult.failure(
+            ApiError(
+              message: "Data parsing failed",
+              type: ApiErrorType.parsing,
+            ),
+          );
+        }
+      },
+      failure: (error) => ApiResult.failure(error),
+    );
   }
 
-  static Future<http.Response> gettaskHistory() async {
-    final response = await service.get(UriManager.taskhistory, withAuth: true);
-    debugPrint(response.body);
-    return response;
+  static Future<ApiResult<List<DutyItem>>> gettaskHistory({
+    CancelToken? cancelToken,
+  }) async {
+    final ApiClient service = ApiClient();
+
+    final result = await service.get(
+      UriManager.taskhistory,
+      cancelToken: cancelToken,
+      withAuth: false,
+    );
+
+    return result.when(
+      success: (res) {
+        try {
+          return ApiResult.success(DutyItem.listFromJson(jsonDecode(res.data)));
+        } catch (e) {
+          return ApiResult.failure(
+            ApiError(
+              message: "Data parsing failed",
+              type: ApiErrorType.parsing,
+            ),
+          );
+        }
+      },
+      failure: (error) => ApiResult.failure(error),
+    );
   }
 
-  static Future<http.Response> edittaskHistory(
+  static Future<ApiResult<dynamic>> edittaskHistory(
     String id,
     bool idA, {
     required TimeOfDay startTime,
@@ -33,10 +85,12 @@ class EssentialServices {
     required String offStation,
     required String localSite,
     required String driv,
+    CancelToken? cancelToken,
   }) async {
-    final response = await service.put(
+    final ApiClient service = ApiClient();
+
+    final result = await service.put(
       "${UriManager.workentries}$id/",
-      withAuth: true,
       body: {
         "status": status,
         "description": description,
@@ -50,17 +104,57 @@ class EssentialServices {
         'local_site': localSite,
         'driv': driv,
       },
+      isOfflineSync: false,
+      cancelToken: cancelToken,
+      withAuth: false,
     );
-    debugPrint(response.body);
-    return response;
+
+    return result.when(
+      success: (res) {
+        try {
+          ApiClient.authguard(res.statusCode);
+          ApiClient.authguard(res.statusCode);
+          return ApiResult.success(res.data);
+        } catch (e) {
+          return ApiResult.failure(
+            ApiError(
+              message: "Data parsing failed",
+              type: ApiErrorType.parsing,
+            ),
+          );
+        }
+      },
+      failure: (error) => ApiResult.failure(error),
+    );
   }
 
-  static Future<http.Response> deletetaskHistory(String id) async {
-    final response = await service.delete(
+  static Future<ApiResult<dynamic>> deletetaskHistory(
+    String id, {
+    CancelToken? cancelToken,
+  }) async {
+    final ApiClient service = ApiClient();
+
+    final result = await service.delete(
       "${UriManager.workentries}$id/",
-      withAuth: true,
+      cancelToken: cancelToken,
+      withAuth: false,
     );
-    debugPrint(response.body);
-    return response;
+    return result.when(
+      success: (res) {
+        try {
+          ApiClient.authguard(res.statusCode);
+          ApiClient.authguard(res.statusCode);
+          return ApiResult.success(res.data);
+        } catch (e) {
+          return ApiResult.failure(
+            ApiError(
+              message: "Data parsing failed",
+              type: ApiErrorType.parsing,
+            ),
+          );
+        }
+      },
+      failure: (error) => ApiResult.failure(error),
+    );
   }
 }

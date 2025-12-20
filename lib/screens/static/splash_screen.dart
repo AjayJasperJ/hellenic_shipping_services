@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
 import 'package:hellenic_shipping_services/core/utils/global_logger.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
-import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 

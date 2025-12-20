@@ -1,64 +1,45 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
-import 'package:hellenic_shipping_services/models/tasklist_model.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
+import 'package:hellenic_shipping_services/redesigned_model/tasklist_model.dart';
 import 'package:hellenic_shipping_services/services/essential_services.dart';
 
 class TaskProvider with ChangeNotifier {
-  // ---------------- LOADERS -----------------
-  bool _tasklistloading = false;
-  bool get tasklistloading => _tasklistloading;
-
-  bool _edittaskloading = false;
-  bool get edittaskloading => _edittaskloading;
-
-  bool _deletetaskloading = false;
-  bool get deletetaskloading => _deletetaskloading;
-
-  // ---------------- DATA -----------------
+  StateResponse _taskListState = StateResponse.idle();
+  StateResponse get taskListState => _taskListState;
   List<DutyItem> _tasklist = [];
   List<DutyItem> get tasklist => _tasklist;
-
-  /// main backup
   List<DutyItem> _originalList = [];
-
-  // ---------------- DATE FILTER VARIABLES -----------------
   DateTime? selectedStartDate;
   DateTime? selectedEndDate;
 
-  // ---------------- FETCH LIST -----------------
-  Future<StatusResponse> getTaskList() async {
-    _tasklistloading = true;
+  Future<StateResponse> getTaskList() async {
+    _taskListState = StateResponse.loading();
     notifyListeners();
-
     try {
       final response = await EssentialServices.gettaskHistory();
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        _tasklist = DutyItem.listFromJson(jsonDecode(response.body));
-
-        // backup master list
-        _originalList = List.from(_tasklist);
-
-        notifyListeners();
-        return StatusResponse(
-          status: 'success',
-          message: 'list retrieved successfully',
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expired', message: response.body);
-      } else {
-        return StatusResponse(status: 'failed', message: response.body);
-      }
+      return response.when(
+        success: (data) {
+          _tasklist = data;
+          _originalList = data;
+          _taskListState = StateResponse.success(
+            data,
+            message: 'list retrieved successfully',
+          );
+          return _taskListState;
+        },
+        failure: (error) {
+          _taskListState = StateResponse.failure(error);
+          return _taskListState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      _taskListState = StateResponse.exception('Something went wrong');
+      return _taskListState;
     } finally {
-      _tasklistloading = false;
       notifyListeners();
     }
   }
 
-  // ---------------- PARSERS -----------------
   DateTime _parseDate(String dateStr) {
     try {
       return DateTime.parse(dateStr);
@@ -76,7 +57,6 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
-  // ---------------- SORTING METHODS -----------------
   void sortByStartTime() {
     _tasklist.sort(
       (a, b) => _parseTime(a.startTime).compareTo(_parseTime(b.startTime)),
@@ -96,16 +76,13 @@ class TaskProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------------- RESET SORT -----------------
   void resetSort() {
     selectedStartDate = null;
     selectedEndDate = null;
-
     _tasklist = List.from(_originalList);
     notifyListeners();
   }
 
-  // ---------------- DATE FILTERING -----------------
   void setStartDate(DateTime date) {
     selectedStartDate = date;
     _applyFilter();
@@ -117,39 +94,33 @@ class TaskProvider with ChangeNotifier {
   }
 
   void _applyFilter() {
-    /// always start from master
     _tasklist = List.from(_originalList);
-
     if (selectedStartDate == null && selectedEndDate == null) {
       notifyListeners();
       return;
     }
-
     _tasklist = _tasklist.where((task) {
       final taskDate = _parseDate(task.date);
-
       bool ok = true;
-
       if (selectedStartDate != null) {
         ok =
             ok && taskDate.isAtSameMomentAs(selectedStartDate!) ||
             taskDate.isAfter(selectedStartDate!);
       }
-
       if (selectedEndDate != null) {
         ok =
             ok && taskDate.isAtSameMomentAs(selectedEndDate!) ||
             taskDate.isBefore(selectedEndDate!);
       }
-
       return ok;
     }).toList();
-
     notifyListeners();
   }
 
-  // ---------------- EDIT TASK -----------------
-  Future<StatusResponse> edittaskdata(
+  StateResponse _editTaskState = StateResponse.idle();
+  StateResponse get editTaskState => _editTaskState;
+
+  Future<StateResponse> edittaskdata(
     String id,
     bool idA, {
     required TimeOfDay startTime,
@@ -164,7 +135,7 @@ class TaskProvider with ChangeNotifier {
     required String localSite,
     required String driv,
   }) async {
-    _edittaskloading = true;
+    _editTaskState = StateResponse.loading();
     notifyListeners();
 
     try {
@@ -183,65 +154,64 @@ class TaskProvider with ChangeNotifier {
         localSite: localSite,
         offStation: offStation,
       );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return StatusResponse(
-          status: 'success',
-          message: 'Task updated successfully',
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expired', message: response.body);
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(response.body)['error'],
-        );
-      }
+      return response.when(
+        success: (data) {
+          _editTaskState = StateResponse.success(
+            data,
+            message: 'Task updated successfully',
+          );
+          return _editTaskState;
+        },
+        failure: (error) {
+          _editTaskState = StateResponse.failure(error);
+          return _editTaskState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'Network error');
+      _editTaskState = StateResponse.exception('Something went wrong');
+      return _editTaskState;
     } finally {
-      _edittaskloading = false;
       notifyListeners();
     }
   }
 
-  // ---------------- DELETE TASK -----------------
-  Future<StatusResponse> deletetaskdata(String id) async {
-    _deletetaskloading = true;
-    notifyListeners();
+  StateResponse _deleteTaskState = StateResponse.idle();
+  StateResponse get deleteTaskState => _deleteTaskState;
 
+  Future<StateResponse> deletetaskdata(String id) async {
+    _deleteTaskState = StateResponse.loading();
+    notifyListeners();
     try {
       final response = await EssentialServices.deletetaskHistory(id);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return StatusResponse(
-          status: 'success',
-          message: 'Task deleted successfully',
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expired', message: response.body);
-      } else {
-        return StatusResponse(status: 'failure', message: response.body);
-      }
+      return response.when(
+        success: (data) {
+          _deleteTaskState = StateResponse.success(
+            data,
+            message: 'Task deleted successfully',
+          );
+          return _deleteTaskState;
+        },
+        failure: (error) {
+          _deleteTaskState = StateResponse.failure(error);
+          return _deleteTaskState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'Network error');
+      _deleteTaskState = StateResponse.exception('Something went wrong');
+      return _deleteTaskState;
     } finally {
-      _deletetaskloading = false;
       notifyListeners();
     }
   }
 
   void clearAllData() {
-    _tasklistloading = false;
-    _edittaskloading = false;
-    _deletetaskloading = false;
-
+    _taskListState = StateResponse.idle();
+    _editTaskState = StateResponse.idle();
+    _deleteTaskState = StateResponse.idle();
     _tasklist = [];
     _originalList = [];
-
     selectedStartDate = null;
     selectedEndDate = null;
-
     notifyListeners();
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:toastification/toastification.dart';
 
@@ -90,6 +92,7 @@ class ToastManager {
   static void showSingle(
     BuildContext context, {
     required String title,
+    String? subtitle,
     ToastificationType type = ToastificationType.info,
     ToastificationStyle style = ToastificationStyle.flat,
     Color? textcolor,
@@ -103,9 +106,19 @@ class ToastManager {
       Toastification().dismissAll(delayForAnimation: false);
     }
     _current = Toastification().show(
+      dismissDirection: DismissDirection.up,
       style: style,
       backgroundColor: Theme.of(context).colorScheme.surface,
       context: context,
+      borderSide: BorderSide(color: Color(0xFFFFBF00)),
+      description: subtitle != null
+          ? Txt(
+              subtitle,
+              color: textcolor ?? Theme.of(context).colorScheme.onSurface,
+              font: Font.medium,
+              size: 13.sp,
+            )
+          : null,
       title: Txt(
         title,
         color: textcolor ?? Theme.of(context).colorScheme.onSurface,

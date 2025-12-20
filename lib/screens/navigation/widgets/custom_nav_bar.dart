@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/dimensions.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/redesigned_model/profile_model.dart';
+
+import 'package:toastification/toastification.dart';
+import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
-import 'package:hellenic_shipping_services/models/employee_detail.dart';
+import 'package:hellenic_shipping_services/redesigned_model/employee_detail.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/entries_provider.dart';
 import 'package:hellenic_shipping_services/providers/leave_provider.dart';
@@ -107,7 +110,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 230.w,
+      width: MediaQuery.of(context).size.width * 0.5,
       child: Drawer(
         backgroundColor: AppColors.appBackground,
         shape: RoundedRectangleBorder(
@@ -119,8 +122,8 @@ class AppDrawer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Selector<AuthProvider, EmployeeInfo?>(
-                  selector: (_, p) => p.employeeInfo,
+                Selector<AuthProvider, ProfileResponse?>(
+                  selector: (_, p) => p.profileResponse,
                   builder: (_, value, __) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,8 +151,8 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: Dimen.h20),
-                Selector<AuthProvider, EmployeeInfo?>(
-                  selector: (_, p) => p.employeeInfo,
+                Selector<AuthProvider, ProfileResponse?>(
+                  selector: (_, p) => p.profileResponse,
                   builder: (_, value, __) {
                     return Txt(
                       'Emp id #${Helper.capitalizeFirst(value?.employeeNo.toString() ?? '')}',
@@ -158,8 +161,8 @@ class AppDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                Selector<AuthProvider, EmployeeInfo?>(
-                  selector: (_, p) => p.employeeInfo,
+                Selector<AuthProvider, ProfileResponse?>(
+                  selector: (_, p) => p.profileResponse,
                   builder: (_, value, __) {
                     return Flexible(
                       child: Txt(
@@ -205,39 +208,37 @@ class AppDrawer extends StatelessWidget {
 
                       openDialog(context);
 
-                      final response = await ApiService.apiRequest(
-                        context,
-                        () => authProvider.logout(),
-                      );
+                      final response = await authProvider.logout();
                       if (!context.mounted) return;
 
                       if (context.mounted) closeDialog(context);
 
-                      // Show toast or error based on response and then clear local state
-                      ApiService.apiServiceStatus(context, response, (
-                        data,
-                      ) async {
-                        if (data == 'success') {
-                          RouteNavigator.pushReplacementRouted(AppRoutes.login);
-                          TokenStorage.deleteToken();
-                          TokenStorage.deleteRefresh();
-                          try {
-                            authProvider.clearAllData();
-                          } catch (_) {}
-                          try {
-                            entriesProvider.clearAllData();
-                          } catch (_) {}
-                          try {
-                            leaveProvider.clearAllData();
-                          } catch (_) {}
-                          try {
-                            taskProvider.clearAllData();
-                          } catch (_) {}
-                          try {
-                            navProvider.clearAllData();
-                          } catch (_) {}
-                        }
-                      });
+                      if (response.isSuccess) {
+                        RouteNavigator.pushReplacementRouted(AppRoutes.login);
+                        TokenStorage.deleteToken();
+                        TokenStorage.deleteRefresh();
+                        try {
+                          authProvider.clearAllData();
+                        } catch (_) {}
+                        try {
+                          entriesProvider.clearAllData();
+                        } catch (_) {}
+                        try {
+                          leaveProvider.clearAllData();
+                        } catch (_) {}
+                        try {
+                          taskProvider.clearAllData();
+                        } catch (_) {}
+                        try {
+                          navProvider.clearAllData();
+                        } catch (_) {}
+                      } else {
+                        ToastManager.showSingle(
+                          context,
+                          title: response.message,
+                          type: ToastificationType.error,
+                        );
+                      }
                     }
                   },
                   child: Container(

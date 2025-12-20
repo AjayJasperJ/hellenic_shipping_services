@@ -3,21 +3,25 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/dimensions.dart';
+import 'package:hellenic_shipping_services/core/toasts/toast_manager.dart';
+import 'package:hellenic_shipping_services/core/toasts/toast_widgets.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
-import 'package:hellenic_shipping_services/models/employee_detail.dart';
-import 'package:hellenic_shipping_services/models/tasklist_model.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
+import 'package:hellenic_shipping_services/redesigned_model/employee_detail.dart';
+import 'package:hellenic_shipping_services/redesigned_model/tasklist_model.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/entries_provider.dart';
 import 'package:hellenic_shipping_services/providers/task_provider.dart';
+import 'package:hellenic_shipping_services/redesigned_model/profile_model.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
+
 import 'package:hellenic_shipping_services/screens/widget/components/custom_boardered_field.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_scafold.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_textfield.dart';
 import 'package:hellenic_shipping_services/screens/widget/loading.dart';
-import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
+import 'package:toastification/toastification.dart';
 import 'package:provider/provider.dart';
 
 class CreateTaskScreen extends StatefulWidget {
@@ -59,7 +63,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
     // Prepare request closure capturing required providers/values
     final entriesProvider = context.read<EntriesProvider>();
-    final isAdmin = context.read<AuthProvider>().employeeInfo?.category == 'A';
+    final isAdmin =
+        context.read<AuthProvider>().profileResponse?.category == 'A';
     final start = startTime.value!;
     final end = endTime.value!;
     final jobId = _jobIdCont.text;
@@ -71,7 +76,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     final localSite = isLocalSite.value.toString();
     final offStation = isOffStation.value.toString();
 
-    Future<StatusResponse> request() => entriesProvider.postEnteries(
+    Future<StateResponse> request() => entriesProvider.postEnteries(
       isAdmin,
       startTime: start,
       endTime: end,
@@ -86,14 +91,21 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       offStation: offStation,
     );
 
-    await _executeAndRefresh(request, taskProvider: taskProvider);
+    if (!mounted) return;
+
+    await _executeAndRefresh(
+      request,
+      taskProvider: taskProvider,
+      successMessage: 'Task Added Successfully',
+    );
   }
 
   Future<void> editcontent() async {
     final taskProvider = context.read<TaskProvider>();
     if (!_validateEntry(context)) return;
     final taskProviderForEdit = context.read<TaskProvider>();
-    final isAdmin = context.read<AuthProvider>().employeeInfo?.category == 'A';
+    final isAdmin =
+        context.read<AuthProvider>().profileResponse?.category == 'A';
     final taskId = widget.dutyitem!.id;
     final description = _descriptionCont.text;
     final start = startTime.value;
@@ -105,7 +117,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     final holiday = isHolidayWorked.value.toString();
     final localSite = isLocalSite.value.toString();
     final offStation = isOffStation.value.toString();
-    Future<StatusResponse> request() => taskProviderForEdit.edittaskdata(
+    Future<StateResponse> request() => taskProviderForEdit.edittaskdata(
       taskId,
       isAdmin,
       description: description,
@@ -120,30 +132,52 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       localSite: localSite,
       offStation: offStation,
     );
-    await _executeAndRefresh(request, taskProvider: taskProvider);
+    await _executeAndRefresh(
+      request,
+      taskProvider: taskProvider,
+      successMessage: 'Task Edited Successfully',
+    );
   }
 
   Future<void> _executeAndRefresh(
-    Future<StatusResponse> Function() request, {
+    Future<StateResponse> Function() request, {
     required TaskProvider taskProvider,
+    required String successMessage,
   }) async {
     openDialog(context);
-    final response = await ApiService.apiRequest(context, request);
+    final response = await request();
     if (!mounted) return;
-    ApiService.apiServiceStatus(context, response, (data) async {
-      if (data == 'success') {
-        final taskListResponse = await ApiService.apiRequest(
-          context,
-          () => taskProvider.getTaskList(),
+
+    if (response.isSuccess) {
+      final taskListResponse = await taskProvider.getTaskList();
+      if (!mounted) return;
+      if (taskListResponse.isSuccess) {
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: successMessage,
+            icon: Icons.check_circle_outline_rounded,
+          ),
         );
-        if (!mounted) return;
-        ApiService.apiServiceStatus(context, taskListResponse, (data) {
-          if (data == 'success') {
-            RouteNavigator.removeUntil(AppRoutes.nav, (route) => false);
-          }
-        }, disableSuccessToast: true);
+        RouteNavigator.removeUntil(
+          AppRoutes.nav,
+          (route) => route.settings.name == AppRoutes.nav,
+        );
+      } else {
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: taskListResponse.message,
+            icon: Icons.error_outline_rounded,
+          ),
+        );
       }
-    }, disableSuccessToast: true);
+    } else {
+      ToastManager.showSingleCustom(
+        child: FieldValidation(
+          message: response.message,
+          icon: Icons.error_outline_rounded,
+        ),
+      );
+    }
     if (mounted) closeDialog(context);
   }
 
@@ -195,21 +229,36 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   bool _validateEntry(BuildContext context) {
     if (startTime.value == null) {
       if (mounted) {
-        ToastManager.showSingle(context, title: 'Start time not selected');
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: 'Start time not selected',
+            icon: Icons.timer_sharp,
+          ),
+        );
       }
       return false;
     }
     if (endTime.value == null) {
       if (mounted) {
-        ToastManager.showSingle(context, title: 'End time not selected');
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: 'End time not selected',
+            icon: Icons.timer_sharp,
+          ),
+        );
       }
       return false;
     }
     if (fieldvalidation(
-      context.read<AuthProvider>().employeeInfo?.category == 'A',
+      context.read<AuthProvider>().profileResponse?.category == 'A',
     )) {
       if (mounted) {
-        ToastManager.showSingle(context, title: 'Fields Should not be Empty');
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: 'Fields Should not be Empty',
+            icon: Icons.text_fields_rounded,
+          ),
+        );
       }
       return false;
     }
@@ -227,15 +276,25 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             children: [
               Row(
                 children: [
-                  Expanded(child: _buildTimeField('Start Time', startTime)),
+                  Expanded(
+                    child: BuildTimeField(
+                      label: 'Start Time',
+                      timeNotifier: startTime,
+                    ),
+                  ),
                   SizedBox(width: 10.w),
-                  Expanded(child: _buildTimeField('End Time', endTime)),
+                  Expanded(
+                    child: BuildTimeField(
+                      label: 'End Time',
+                      timeNotifier: endTime,
+                    ),
+                  ),
                 ],
               ),
 
               // JOB FIELDS FOR CATEGORY A
-              Selector<AuthProvider, EmployeeInfo?>(
-                selector: (_, p) => p.employeeInfo,
+              Selector<AuthProvider, ProfileResponse?>(
+                selector: (_, p) => p.profileResponse,
                 builder: (_, value, __) {
                   return (value?.category == 'A')
                       ? Column(
@@ -288,8 +347,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
           ),
         ),
         SliverToBoxAdapter(
-          child: Selector<AuthProvider, EmployeeInfo?>(
-            selector: (_, p) => p.employeeInfo,
+          child: Selector<AuthProvider, ProfileResponse?>(
+            selector: (_, p) => p.profileResponse,
             builder: (_, value, __) {
               return (value?.category == 'A')
                   ? Column(
@@ -367,8 +426,19 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       ),
     );
   }
+}
 
-  Widget _buildTimeField(String label, ValueNotifier<TimeOfDay?> timeNotifier) {
+class BuildTimeField extends StatelessWidget {
+  final String label;
+  final ValueNotifier<TimeOfDay?> timeNotifier;
+  const BuildTimeField({
+    super.key,
+    required this.label,
+    required this.timeNotifier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return CustomBoarderedField(
       label: label,
       child: SizedBox(

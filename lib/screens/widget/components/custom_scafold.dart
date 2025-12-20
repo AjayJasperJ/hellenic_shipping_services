@@ -4,8 +4,8 @@ import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/dimensions.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
-import 'package:hellenic_shipping_services/models/employee_detail.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
+import 'package:hellenic_shipping_services/redesigned_model/profile_model.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_elevatednutton_style.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
@@ -30,6 +30,7 @@ class CustomScafold extends StatelessWidget {
       body: Padding(
         padding: EdgeInsets.only(left: 24.w, right: 24.w, top: 30.h),
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
               child: Column(
@@ -66,8 +67,8 @@ class CustomScafold extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Selector<AuthProvider, EmployeeInfo?>(
-                              selector: (_, p) => p.employeeInfo,
+                            Selector<AuthProvider, ProfileResponse?>(
+                              selector: (_, p) => p.profileResponse,
                               builder: (_, value, __) {
                                 return Txt(
                                   'Hello ${Helper.capitalizeFirstName(value?.username ?? '')}!',

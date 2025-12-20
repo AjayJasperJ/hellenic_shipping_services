@@ -74,22 +74,27 @@ class LeaveResponse {
 
   const LeaveResponse({this.items = const []});
 
-  /// Parse from decoded JSON list
-  factory LeaveResponse.fromJsonList(dynamic jsonList) {
-    if (jsonList is! List) return const LeaveResponse(items: []);
+  /// Handles both:
+  /// 1. Direct list response
+  /// 2. Wrapped response { "items": [...] }
+  factory LeaveResponse.fromJson(dynamic json) {
+    final list = json is Map<String, dynamic> ? json["items"] : json;
+
+    if (list is! List) {
+      return const LeaveResponse(items: []);
+    }
 
     return LeaveResponse(
-      items: jsonList
+      items: list
           .whereType<Map<String, dynamic>>()
-          .map((e) => LeaveItem.fromJson(e))
+          .map(LeaveItem.fromJson)
           .toList(),
     );
   }
 
-  /// Parse from encoded JSON string
   factory LeaveResponse.fromEncodedJson(String encoded) {
-    final dynamic decoded = jsonDecode(encoded);
-    return LeaveResponse.fromJsonList(decoded);
+    final decoded = jsonDecode(encoded);
+    return LeaveResponse.fromJson(decoded);
   }
 
   Map<String, dynamic> toJson() {

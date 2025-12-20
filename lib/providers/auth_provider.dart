@@ -1,135 +1,143 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
-import 'package:hellenic_shipping_services/models/auth_model.dart';
-import 'package:hellenic_shipping_services/models/employee_detail.dart';
+import 'package:hellenic_shipping_services/redesigned_model/profile_model.dart';
 import 'package:hellenic_shipping_services/services/auth_services.dart';
 
 class AuthProvider with ChangeNotifier {
-  bool _loginloading = false;
-  bool get loginloading => _loginloading;
+  StateResponse _loginState = StateResponse.idle();
+  StateResponse get loginState => _loginState;
 
-  LoginResponse? _logindata;
-  LoginResponse? get logindata => _logindata;
-
-  Future<StatusResponse> loginuser({
+  Future<StateResponse> loginuser({
     required String identifier,
     required String password,
   }) async {
-    _loginloading = true;
-    _logindata = null;
+    _loginState = StateResponse.loading();
     notifyListeners();
     try {
-      final response = await AuthServices.login(identifier, password);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final jsonbody = jsonDecode(response.body);
-        _logindata = LoginResponse.fromJson(jsonbody);
-        TokenStorage.saveToken(_logindata!.access);
-        TokenStorage.saveRefresh(_logindata!.refresh);
-        return StatusResponse(status: 'success', message: 'login successful');
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(response.body)['error'],
-        );
-      }
+      final response = await AuthServices.login(
+        identifier: identifier,
+        password: password,
+      );
+      return response.when(
+        success: (data) {
+          TokenStorage.saveToken(data.access);
+          TokenStorage.saveRefresh(data.refresh);
+          _loginState = StateResponse.success(
+            data,
+            message: 'login successful',
+          );
+          return _loginState;
+        },
+        failure: (error) {
+          _loginState = StateResponse.failure(error);
+          return _loginState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'app failed');
+      _loginState = StateResponse.exception('Something went wrong');
+      return _loginState;
     } finally {
-      _loginloading = false;
       notifyListeners();
     }
   }
 
-  Future<StatusResponse> attendanceuser({required TimeOfDay time}) async {
-    _loginloading = true;
-    _logindata = null;
+  StateResponse _attendanceState = StateResponse.idle();
+  StateResponse get attendanceState => _attendanceState;
+
+  Future<StateResponse> attendanceuser({required TimeOfDay time}) async {
+    _attendanceState = StateResponse.loading();
     notifyListeners();
     try {
-      final response = await AuthServices.attendance(time);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return StatusResponse(
-          status: 'success',
-          message: 'Logged successfully',
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expaired', message: response.body);
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(response.body)['error'],
-        );
-      }
+      final response = await AuthServices.attendance(loginTime: time);
+      return response.when(
+        success: (data) {
+          _attendanceState = StateResponse.success(
+            data,
+            message: 'Attendance logged successfully',
+          );
+          return _attendanceState;
+        },
+        failure: (error) {
+          _attendanceState = StateResponse.failure(error);
+          return _attendanceState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'Network error');
+      _attendanceState = StateResponse.exception('Something went wrong');
+      return _attendanceState;
     } finally {
-      _loginloading = false;
       notifyListeners();
     }
   }
 
-  EmployeeInfo? _employeeInfo;
-  EmployeeInfo? get employeeInfo => _employeeInfo;
+  ProfileResponse? _profileResponse;
+  ProfileResponse? get profileResponse => _profileResponse;
+  StateResponse _profileState = StateResponse.idle();
+  StateResponse get profileState => _profileState;
 
-  Future<StatusResponse> profile() async {
-    _loginloading = true;
-    _logindata = null;
+  Future<StateResponse> profile() async {
+    _profileState = StateResponse.loading();
     notifyListeners();
     try {
       final response = await AuthServices.profile();
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final jsonbody = jsonDecode(response.body);
-        _employeeInfo = EmployeeInfo.fromJson(jsonbody);
-        return StatusResponse(
-          status: 'success',
-          message: 'Profile retrived successfully',
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expaired', message: response.body);
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(response.body)['error'],
-        );
-      }
+      return response.when(
+        success: (data) {
+          _profileResponse = data;
+          _profileState = StateResponse.success(
+            data,
+            message: 'Profile retrived successfully',
+          );
+          return _profileState;
+        },
+        failure: (error) {
+          _profileState = StateResponse.failure(error);
+          return _profileState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'Network error');
+      _profileState = StateResponse.exception('Something went wrong');
+      return _profileState;
     } finally {
-      _loginloading = false;
       notifyListeners();
     }
   }
 
-  Future<StatusResponse> logout() async {
+  StateResponse _logoutState = StateResponse.idle();
+  StateResponse get logoutState => _logoutState;
+
+  Future<StateResponse> logout() async {
+    _logoutState = StateResponse.loading();
+    notifyListeners();
     try {
       final result = await AuthServices.logout();
-      if (result.statusCode == 200 || result.statusCode == 201) {
-        return StatusResponse(
-          status: 'success',
-          message: 'Successfully loggedOut',
-        );
-      } else if (result.statusCode == 401) {
-        return StatusResponse(
-          status: 'token_expaired',
-          message: 'token expaired',
-        );
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(result.body)['error'],
-        );
-      }
+      return result.when(
+        success: (data) {
+          _logoutState = StateResponse.success(
+            data,
+            message: 'Successfully loggedOut',
+          );
+          return _logoutState;
+        },
+        failure: (error) {
+          _logoutState = StateResponse.failure(error);
+          return _logoutState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'Network error');
+      _logoutState = StateResponse.exception('Something went wrong');
+      return _logoutState;
+    } finally {
+      notifyListeners();
     }
   }
 
   void clearAllData() {
-    _loginloading = false;
-    _logindata = null;
-    _employeeInfo = null;
-
+    _loginState = StateResponse.idle();
+    _attendanceState = StateResponse.idle();
+    _profileState = StateResponse.idle();
+    _logoutState = StateResponse.idle();
+    _profileResponse = null;
     notifyListeners();
   }
 }

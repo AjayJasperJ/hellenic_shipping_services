@@ -1,57 +1,52 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
-import 'package:hellenic_shipping_services/models/leave_model.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
+import 'package:hellenic_shipping_services/redesigned_model/leave_model.dart';
 import 'package:hellenic_shipping_services/services/essential_services.dart';
 
 class LeaveProvider with ChangeNotifier {
-  bool _leavelistloading = false;
-  bool get leavelistloading => _leavelistloading;
-
+  StateResponse _leaveListState = StateResponse.idle();
+  StateResponse get leaveListState => _leaveListState;
   LeaveResponse? _listleavetype;
   LeaveResponse? get listleavetype => _listleavetype;
 
-  Future<StatusResponse> getleavelist() async {
-    _leavelistloading = true;
+  Future<StateResponse> getleavelist() async {
+    _leaveListState = StateResponse.loading();
     notifyListeners();
     try {
       final response = await EssentialServices.getleaveBalance();
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        _listleavetype = LeaveResponse.fromEncodedJson(response.body);
-        return StatusResponse(
-          status: 'success',
-          message: 'leave retrived successfully',
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expaired', message: response.body);
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(response.body)['error'],
-        );
-      }
+      return response.when(
+        success: (data) {
+          _listleavetype = data;
+          _leaveListState = StateResponse.success(
+            data,
+            message: 'leave retrived successfully',
+          );
+          return _leaveListState;
+        },
+        failure: (error) {
+          _leaveListState = StateResponse.failure(error);
+          return _leaveListState;
+        },
+      );
     } catch (e) {
-      return StatusResponse(status: 'exception', message: 'Network error');
+      _leaveListState = StateResponse.exception('Something went wrong');
+      return _leaveListState;
     } finally {
-      _leavelistloading = false;
       notifyListeners();
     }
   }
 
   LeaveItem? _leaveItem;
   LeaveItem? get leaveitem => _leaveItem;
-
   void updateleave(LeaveItem item) {
     _leaveItem = item;
     notifyListeners();
   }
 
   void clearAllData() {
-    _leavelistloading = false;
+    _leaveListState = StateResponse.idle();
     _listleavetype = null;
     _leaveItem = null;
-
     notifyListeners();
   }
 }

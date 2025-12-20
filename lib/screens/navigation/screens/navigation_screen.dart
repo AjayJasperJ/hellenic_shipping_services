@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+
+import 'package:toastification/toastification.dart';
+import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/leave_provider.dart';
@@ -33,19 +35,39 @@ class _BottomNavState extends State<BottomNav> {
       final leaveProvider = context.read<LeaveProvider>();
       final taskProvider = context.read<TaskProvider>();
       final authProvider = context.read<AuthProvider>();
-      final isProfile = await ApiService.apiRequest(
-        context,
-        () => authProvider.profile(),
-      );
-      if (isProfile.status == 'success') {
+      final isProfile = await authProvider.profile();
+
+      if (isProfile.isSuccess) {
         if (!mounted) return;
-        await ApiService.apiRequest(
-          context,
-          () => leaveProvider.getleavelist(),
-        );
+        final leaveResponse = await leaveProvider.getleavelist();
+
         if (!mounted) return;
-        await ApiService.apiRequest(context, () => taskProvider.getTaskList());
+        if (leaveResponse.isSuccess) {
+          final taskResponse = await taskProvider.getTaskList();
+          if (mounted) closeDialog(context);
+
+          if (!taskResponse.isSuccess) {
+            ToastManager.showSingle(
+              context,
+              title: taskResponse.message,
+              type: ToastificationType.error,
+            );
+          }
+        } else {
+          if (mounted) closeDialog(context);
+          ToastManager.showSingle(
+            context,
+            title: leaveResponse.message,
+            type: ToastificationType.error,
+          );
+        }
+      } else {
         if (mounted) closeDialog(context);
+        ToastManager.showSingle(
+          context,
+          title: isProfile.message,
+          type: ToastificationType.error,
+        );
       }
     });
   }

@@ -5,10 +5,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/dimensions.dart';
+import 'package:hellenic_shipping_services/core/toasts/toast_manager.dart';
+import 'package:hellenic_shipping_services/core/toasts/toast_widgets.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
-import 'package:hellenic_shipping_services/models/tasklist_model.dart';
+import 'package:toastification/toastification.dart';
+import 'package:hellenic_shipping_services/redesigned_model/tasklist_model.dart';
 import 'package:hellenic_shipping_services/providers/task_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
@@ -41,33 +43,38 @@ class ViewTaskScreen extends StatefulWidget {
 
 class _ViewTaskScreenState extends State<ViewTaskScreen> {
   Future deletetask() async {
-    // Capture provider to avoid using BuildContext across async gaps
     final taskProvider = context.read<TaskProvider>();
     openDialog(context);
-
-    // Delete the task using ApiService.apiRequest (passes a factory)
-    final response = await ApiService.apiRequest(
-      context,
-      () => taskProvider.deletetaskdata(widget.item.id),
-    );
+    final response = await taskProvider.deletetaskdata(widget.item.id);
     if (!mounted) return;
 
-    ApiService.apiServiceStatus(context, response, (status) async {
-      if (status == 'success') {
-        // Refresh task list after successful delete
-        final response2 = await ApiService.apiRequest(
-          context,
-          () => taskProvider.getTaskList(),
+    if (response.isSuccess) {
+      final response2 = await taskProvider.getTaskList();
+      if (!mounted) return;
+      if (response2.isSuccess) {
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: 'Task Deleted Successfully',
+            icon: Icons.check_circle_outline_rounded,
+          ),
         );
-        if (!mounted) return;
-        ApiService.apiServiceStatus(context, response2, (s2) {
-          if (s2 == 'success') {
-            // Navigate back to nav root
-            RouteNavigator.removeUntil(AppRoutes.nav, (route) => route.isFirst);
-          }
-        });
+        RouteNavigator.pop();
+      } else {
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: 'Failed to Load Task List',
+            icon: Icons.error_outline_rounded,
+          ),
+        );
       }
-    });
+    } else {
+      ToastManager.showSingleCustom(
+        child: FieldValidation(
+          message: 'Failed to Delete Task',
+          icon: Icons.error_outline_rounded,
+        ),
+      );
+    }
 
     if (mounted) closeDialog(context);
   }

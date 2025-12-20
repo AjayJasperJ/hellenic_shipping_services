@@ -3,7 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/dimensions.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
+import 'package:hellenic_shipping_services/core/toasts/toast_manager.dart';
+import 'package:hellenic_shipping_services/core/toasts/toast_widgets.dart';
+import 'package:toastification/toastification.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
@@ -11,7 +14,8 @@ import 'package:hellenic_shipping_services/screens/widget/components/custom_boar
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_textfield.dart';
 import 'package:hellenic_shipping_services/screens/widget/loading.dart';
-import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
+import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart'
+    hide ToastManager;
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -30,47 +34,71 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   Future<void> login() async {
-    // Validate required fields and show a toast if any are empty
     if (_identiferCont.text.trim().isEmpty) {
-      ToastManager.showSingle(context, title: 'Username is required');
-      _identiferFocusNode.requestFocus();
+      ToastManager.showSingleCustom(
+        child: FieldValidation(
+          message: 'Username is required',
+          icon: Icons.text_fields_rounded,
+        ),
+      );
       return;
     }
     if (_passwordCont.text.trim().isEmpty) {
-      ToastManager.showSingle(context, title: 'Password is required');
-      _passwordFocusNode.requestFocus();
+      ToastManager.showSingleCustom(
+        child: FieldValidation(
+          message: 'Password is required',
+          icon: Icons.key_off_rounded,
+        ),
+      );
       return;
     }
     if (loginTime.value == null) {
-      ToastManager.showSingle(context, title: 'Login time not selected');
+      ToastManager.showSingleCustom(
+        child: FieldValidation(
+          message: 'Login time not selected',
+          icon: Icons.timer_sharp,
+        ),
+      );
       return;
     }
 
     openDialog(context);
-    final StatusResponse response = await context
-        .read<AuthProvider>()
-        .loginuser(
-          identifier: _identiferCont.text,
-          password: _passwordCont.text,
-        );
+    final StateResponse response = await context.read<AuthProvider>().loginuser(
+      identifier: _identiferCont.text,
+      password: _passwordCont.text,
+    );
     if (!mounted) return;
-    closeDialog(context);
-    ApiService.apiServiceStatus(context, response, (state) async {
-      if (state == 'success' && loginTime.value != null) {
-        final StatusResponse response2 = await context
+
+    if (response.isSuccess) {
+      if (loginTime.value != null) {
+        final StateResponse response2 = await context
             .read<AuthProvider>()
             .attendanceuser(time: loginTime.value!);
 
         if (!mounted) return;
-        ApiService.apiServiceStatus(context, response2, (state) {
-          if (state == 'success') {
-            RouteNavigator.pushReplacementRouted(AppRoutes.nav);
-          }
-        });
-      } else if (loginTime.value == null) {
+        closeDialog(context);
+
+        if (response2.isSuccess) {
+          RouteNavigator.pushReplacementRouted(AppRoutes.nav);
+        } else {
+          ToastManager.showSingle(
+            context,
+            title: response2.message,
+            type: ToastificationType.error,
+          );
+        }
+      } else {
+        closeDialog(context);
         ToastManager.showSingle(context, title: 'Login time not selected');
       }
-    }, disableSuccessToast: true);
+    } else {
+      closeDialog(context);
+      ToastManager.showSingle(
+        context,
+        title: response.message,
+        type: ToastificationType.error,
+      );
+    }
   }
 
   @override

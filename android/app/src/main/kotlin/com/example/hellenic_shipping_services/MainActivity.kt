@@ -1,4 +1,4 @@
-package com.example.hellenic_shipping_services
+package com.yashellenic.app
 
 import io.flutter.embedding.android.FlutterActivity
 

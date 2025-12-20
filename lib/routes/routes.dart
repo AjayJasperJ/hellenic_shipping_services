@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/screens/authentication/login_screen.dart';
 import 'package:hellenic_shipping_services/screens/navigation/screens/navigation_screen.dart';
 import 'package:hellenic_shipping_services/screens/home/screens/dashboard_screen.dart';
-import 'package:hellenic_shipping_services/screens/static/log_screen.dart';
 import 'package:hellenic_shipping_services/screens/static/splash_screen.dart';
 import 'package:hellenic_shipping_services/screens/tasks/screens/apply_leave_screen.dart';
 import 'package:hellenic_shipping_services/screens/tasks/screens/create_task_screen.dart';
@@ -29,7 +28,6 @@ class AppRoutes {
       applyleave: (context) => const ApplyLeaveScreen(),
       tasklist: (context) => const TaskListScreen(),
       nav: (context) => BottomNav(),
-      log: (context) => LogScreen(),
     };
   }
 

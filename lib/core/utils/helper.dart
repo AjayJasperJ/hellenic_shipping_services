@@ -63,6 +63,10 @@ class Helper {
     return {"startOutput": formatOutput(start), "endOutput": formatOutput(end)};
   }
 
+  static String twoDigits(int n) => n.toString().padLeft(2, '0');
+
+  static String formatDate(DateTime d) =>
+      '${d.year}-${twoDigits(d.month)}-${twoDigits(d.day)}';
   static TimeOfDay stringToTimeOfDay(String timeString) {
     final parts = timeString.split(':');
 

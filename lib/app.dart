@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hellenic_shipping_services/core/theme/themes.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
+import 'package:toastification/toastification.dart';
 
 class HellenicApp extends StatelessWidget {
   final bool enableScale;
@@ -16,14 +17,16 @@ class HellenicApp extends StatelessWidget {
       splitScreenMode: true,
       enableScaleText: () => enableScale,
       enableScaleWH: () => enableScale,
-      builder: (context, child) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.light,
-        theme: AppThemes.lightTheme,
-        navigatorKey: RouteNavigator.navigatorKey,
-        routes: AppRoutes.goRoutes(),
-        onGenerateRoute: AppRoutes.onGenerateRoute,
-        initialRoute: AppRoutes.splash,
+      builder: (context, child) => ToastificationWrapper(
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeMode.light,
+          theme: AppThemes.lightTheme,
+          navigatorKey: RouteNavigator.navigatorKey,
+          routes: AppRoutes.goRoutes(),
+          onGenerateRoute: AppRoutes.onGenerateRoute,
+          initialRoute: AppRoutes.splash,
+        ),
       ),
     );
   }

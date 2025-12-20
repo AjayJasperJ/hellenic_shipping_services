@@ -1,14 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:hellenic_shipping_services/core/utils/api_services.dart';
+import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
 import 'package:hellenic_shipping_services/services/enteries_service.dart';
 
 class EntriesProvider with ChangeNotifier {
-  bool _entriesloading = false;
-  bool get entriesloading => _entriesloading;
+  StateResponse _postEnteriesState = StateResponse.idle();
+  StateResponse get postEnteriesState => _postEnteriesState;
 
-  Future<StatusResponse> postEnteries(
+  Future<StateResponse> postEnteries(
     bool idA, {
     required TimeOfDay startTime,
     required TimeOfDay endTime,
@@ -22,7 +20,7 @@ class EntriesProvider with ChangeNotifier {
     required String localSite,
     required String driv,
   }) async {
-    _entriesloading = true;
+    _postEnteriesState = StateResponse.loading();
     notifyListeners();
     try {
       final response = await EnteriesService.addenteries(
@@ -39,36 +37,37 @@ class EntriesProvider with ChangeNotifier {
         localSite: localSite,
         offStation: offStation,
       );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return StatusResponse(
-          status: 'success',
-          message: "Task created successfully",
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expaired', message: response.body);
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(response.body)['error'],
-        );
-      }
+
+      return response.when(
+        success: (res) {
+          _postEnteriesState = StateResponse.success(
+            null,
+            message: "Task created successfully",
+          );
+          return _postEnteriesState;
+        },
+        failure: (error) {
+          _postEnteriesState = StateResponse.failure(error);
+          return _postEnteriesState;
+        },
+      );
     } catch (e) {
-      return StatusResponse(status: 'exception', message: "Network error");
+      _postEnteriesState = StateResponse.exception('Something went wrong');
+      return _postEnteriesState;
     } finally {
-      _entriesloading = false;
       notifyListeners();
     }
   }
 
-  bool _applyleaveloading = false;
-  bool get applyleaveloading => _applyleaveloading;
+  StateResponse _applyLeaveState = StateResponse.idle();
+  StateResponse get applyLeaveState => _applyLeaveState;
 
-  Future<StatusResponse> applyleave({
+  Future<StateResponse> applyleave({
     required String status,
     required String leaveType,
     required String leaveReason,
   }) async {
-    _applyleaveloading = true;
+    _applyLeaveState = StateResponse.loading();
     notifyListeners();
     try {
       final response = await EnteriesService.applyleave(
@@ -76,31 +75,67 @@ class EntriesProvider with ChangeNotifier {
         leaveType: leaveType,
         status: status,
       );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return StatusResponse(
-          status: 'success',
-          message: 'leave applied successfully',
-        );
-      } else if (response.statusCode == 401) {
-        return StatusResponse(status: 'token_expaired', message: response.body);
-      } else {
-        return StatusResponse(
-          status: 'failure',
-          message: jsonDecode(response.body)['error'],
-        );
-      }
+      return response.when(
+        success: (data) {
+          _applyLeaveState = StateResponse.success(
+            data,
+            message: 'leave applied successfully',
+          );
+          return _applyLeaveState;
+        },
+        failure: (error) {
+          _applyLeaveState = StateResponse.failure(error);
+          return _applyLeaveState;
+        },
+      );
     } catch (_) {
-      return StatusResponse(status: 'exception', message: 'Network error');
+      _applyLeaveState = StateResponse.exception('Something went wrong');
+      return _applyLeaveState;
     } finally {
-      _applyleaveloading = false;
+      notifyListeners();
+    }
+  }
+
+  StateResponse _applyAnnualLeaveState = StateResponse.idle();
+  StateResponse get applyAnnualLeaveState => _applyAnnualLeaveState;
+
+  Future<StateResponse> applyannualleave({
+    required String endTime,
+    required String startTime,
+    required String leaveReason,
+  }) async {
+    _applyAnnualLeaveState = StateResponse.loading();
+    notifyListeners();
+    try {
+      final response = await EnteriesService.applyAnnualLeave(
+        leaveReason: leaveReason,
+        endDate: endTime,
+        startDate: startTime,
+      );
+      return response.when(
+        success: (data) {
+          _applyAnnualLeaveState = StateResponse.success(
+            data,
+            message: 'leave applied successfully',
+          );
+          return _applyAnnualLeaveState;
+        },
+        failure: (error) {
+          _applyAnnualLeaveState = StateResponse.failure(error);
+          return _applyAnnualLeaveState;
+        },
+      );
+    } catch (_) {
+      _applyAnnualLeaveState = StateResponse.exception('Something went wrong');
+      return _applyAnnualLeaveState;
+    } finally {
       notifyListeners();
     }
   }
 
   void clearAllData() {
-    _entriesloading = false;
-    _applyleaveloading = false;
-
+    _applyLeaveState = StateResponse.idle();
+    _applyAnnualLeaveState = StateResponse.idle();
     notifyListeners();
   }
 }
