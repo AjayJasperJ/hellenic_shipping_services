@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
@@ -9,7 +8,6 @@ import 'package:hellenic_shipping_services/core/toasts/toast_manager.dart';
 import 'package:hellenic_shipping_services/core/toasts/toast_widgets.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
-import 'package:toastification/toastification.dart';
 import 'package:hellenic_shipping_services/redesigned_model/tasklist_model.dart';
 import 'package:hellenic_shipping_services/providers/task_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
@@ -46,18 +44,12 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
     final taskProvider = context.read<TaskProvider>();
     openDialog(context);
     final response = await taskProvider.deletetaskdata(widget.item.id);
-    if (!mounted) return;
-
+    print(response.data);
     if (response.isSuccess) {
+      final bool isOffline =
+          response.data is Map && response.data['offline_queued'] == true;
       final response2 = await taskProvider.getTaskList();
-      if (!mounted) return;
       if (response2.isSuccess) {
-        ToastManager.showSingleCustom(
-          child: FieldValidation(
-            message: 'Task Deleted Successfully',
-            icon: Icons.check_circle_outline_rounded,
-          ),
-        );
         RouteNavigator.pop();
       } else {
         ToastManager.showSingleCustom(
@@ -67,10 +59,18 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
           ),
         );
       }
+      ToastManager.showSingleCustom(
+        child: FieldValidation(
+          message: isOffline
+              ? 'Task will be automatically removed when online'
+              : 'Task Deleted Successfully',
+          icon: Icons.check_circle_outline_rounded,
+        ),
+      );
     } else {
       ToastManager.showSingleCustom(
         child: FieldValidation(
-          message: 'Failed to Delete Task',
+          message: response.message,
           icon: Icons.error_outline_rounded,
         ),
       );
@@ -267,7 +267,102 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                         height: 56.h,
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => deletetask(),
+                          onPressed: () async {
+                            final shouldLogout = await showDialog<bool>(
+                              context: context,
+                              builder: (context) {
+                                return Dialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16.r),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(24.r),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.delete_outline_rounded,
+                                          size: 40.r,
+                                          color: AppColors.appPrimary,
+                                        ),
+                                        SizedBox(height: 16.h),
+                                        Txt(
+                                          "Confirm Delete",
+                                          size: 18.sp,
+                                          font: Font.bold,
+                                        ),
+                                        SizedBox(height: 8.h),
+                                        Txt(
+                                          "Are you sure you want to delete this task?",
+                                          size: 14.sp,
+                                          font: Font.regular,
+                                          align: TextAlign.center,
+                                          color: Colors.grey[600],
+                                        ),
+                                        SizedBox(height: 24.h),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: OutlinedButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  false,
+                                                ),
+                                                style: OutlinedButton.styleFrom(
+                                                  side: BorderSide(
+                                                    color: Colors.grey[300]!,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8.r,
+                                                        ),
+                                                  ),
+                                                ),
+                                                child: Txt(
+                                                  "Cancel",
+                                                  size: 14.sp,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 12.w),
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  true,
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      AppColors.appSecondary,
+                                                  elevation: 0,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8.r,
+                                                        ),
+                                                  ),
+                                                ),
+                                                child: Txt(
+                                                  "Delete",
+                                                  size: 14.sp,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                            if (shouldLogout == true) {
+                              deletetask();
+                            }
+                          },
                           style: customEvelatedButtonStyle(
                             Color.fromARGB(255, 160, 58, 58),
                           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hellenic_shipping_services/app.dart';
+import 'package:hellenic_shipping_services/bootstrap.dart';
 import 'package:hellenic_shipping_services/core/utils/global_logger.dart';
 import 'package:hellenic_shipping_services/core/utils/internet_service.dart';
 import 'package:hellenic_shipping_services/core/utils/logger_service.dart';
@@ -13,6 +14,7 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await bootstrap();
   try {
     await LoggerService.init();
   } catch (e, s) {

@@ -16,7 +16,6 @@ import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/loading.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:provider/provider.dart';
-import 'package:toastification/toastification.dart';
 
 class ApplyLeaveButton extends StatelessWidget {
   final TextEditingController reasonController;
@@ -145,17 +144,19 @@ class ApplyLeaveButton extends StatelessWidget {
                           navProvider.clearAllData();
                         } catch (_) {}
                       } else {
-                        ToastManager.showSingle(
-                          context,
-                          title: logoutResponse.message,
-                          type: ToastificationType.error,
+                        ToastManager.showSingleCustom(
+                          child: FieldValidation(
+                            message: logoutResponse.message,
+                            icon: Icons.error_outline_rounded,
+                          ),
                         );
                       }
                     } else {
-                      ToastManager.showSingle(
-                        context,
-                        title: response.message,
-                        type: ToastificationType.error,
+                      ToastManager.showSingleCustom(
+                        child: FieldValidation(
+                          message: response.message,
+                          icon: Icons.error_outline_rounded,
+                        ),
                       );
                     }
                     if (!context.mounted) return;

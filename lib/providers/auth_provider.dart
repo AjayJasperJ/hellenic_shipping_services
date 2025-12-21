@@ -1,10 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
+import 'package:hellenic_shipping_services/core/network/managers/auto_reconnect_mixin.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
 import 'package:hellenic_shipping_services/redesigned_model/profile_model.dart';
 import 'package:hellenic_shipping_services/services/auth_services.dart';
 
-class AuthProvider with ChangeNotifier {
+class AuthProvider with ChangeNotifier, AutoReconnectMixin {
   StateResponse _loginState = StateResponse.idle();
   StateResponse get loginState => _loginState;
 
@@ -75,12 +77,15 @@ class AuthProvider with ChangeNotifier {
   ProfileResponse? get profileResponse => _profileResponse;
   StateResponse _profileState = StateResponse.idle();
   StateResponse get profileState => _profileState;
+  CancelToken? _cancelToken;
 
   Future<StateResponse> profile() async {
+    cancelTokenNow(_cancelToken, 'cancel due to new request');
+    _cancelToken = CancelToken();
     _profileState = StateResponse.loading();
     notifyListeners();
     try {
-      final response = await AuthServices.profile();
+      final response = await AuthServices.profile(cancelToken: _cancelToken);
       return response.when(
         success: (data) {
           _profileResponse = data;
@@ -139,5 +144,23 @@ class AuthProvider with ChangeNotifier {
     _logoutState = StateResponse.idle();
     _profileResponse = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _cancelToken?.cancel();
+    super.dispose();
+  }
+
+  void disposeCancelToken() {
+    cancelTokenNow(_cancelToken, 'cancel due to navigation');
+  }
+
+  @override
+  bool get shouldRetry => regularRetry(_profileState.state, _cancelToken);
+
+  @override
+  onReconnect() {
+    profile();
   }
 }

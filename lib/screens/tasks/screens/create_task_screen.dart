@@ -7,7 +7,6 @@ import 'package:hellenic_shipping_services/core/toasts/toast_manager.dart';
 import 'package:hellenic_shipping_services/core/toasts/toast_widgets.dart';
 import 'package:hellenic_shipping_services/core/utils/helper.dart';
 import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
-import 'package:hellenic_shipping_services/redesigned_model/employee_detail.dart';
 import 'package:hellenic_shipping_services/redesigned_model/tasklist_model.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/entries_provider.dart';
@@ -15,13 +14,11 @@ import 'package:hellenic_shipping_services/providers/task_provider.dart';
 import 'package:hellenic_shipping_services/redesigned_model/profile_model.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
-
 import 'package:hellenic_shipping_services/screens/widget/components/custom_boardered_field.dart';
 import 'package:hellenic_shipping_services/screens/widget/components/custom_scafold.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_textfield.dart';
 import 'package:hellenic_shipping_services/screens/widget/loading.dart';
-import 'package:toastification/toastification.dart';
 import 'package:provider/provider.dart';
 
 class CreateTaskScreen extends StatefulWidget {
@@ -149,12 +146,22 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     if (!mounted) return;
 
     if (response.isSuccess) {
+      final bool isOffline =
+          response.data is Map && response.data['offline_queued'] == true;
       final taskListResponse = await taskProvider.getTaskList();
       if (!mounted) return;
       if (taskListResponse.isSuccess) {
+        String message = successMessage;
+        if (isOffline) {
+          if (successMessage == 'Task Added Successfully') {
+            message = 'task will be automatically added when online';
+          } else if (successMessage == 'Task Edited Successfully') {
+            message = 'task will be automatically updated when online';
+          }
+        }
         ToastManager.showSingleCustom(
           child: FieldValidation(
-            message: successMessage,
+            message: message,
             icon: Icons.check_circle_outline_rounded,
           ),
         );

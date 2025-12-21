@@ -137,6 +137,7 @@ class EssentialServices {
     final result = await service.delete(
       "${UriManager.workentries}$id/",
       cancelToken: cancelToken,
+      isOfflineSync: false,
       withAuth: false,
     );
     return result.when(

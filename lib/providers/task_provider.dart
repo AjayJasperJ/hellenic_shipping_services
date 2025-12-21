@@ -1,9 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
+import 'package:hellenic_shipping_services/core/network/managers/auto_reconnect_mixin.dart';
 import 'package:hellenic_shipping_services/redesigned_model/tasklist_model.dart';
 import 'package:hellenic_shipping_services/services/essential_services.dart';
 
-class TaskProvider with ChangeNotifier {
+class TaskProvider with ChangeNotifier, AutoReconnectMixin {
   StateResponse _taskListState = StateResponse.idle();
   StateResponse get taskListState => _taskListState;
   List<DutyItem> _tasklist = [];
@@ -11,11 +13,17 @@ class TaskProvider with ChangeNotifier {
   List<DutyItem> _originalList = [];
   DateTime? selectedStartDate;
   DateTime? selectedEndDate;
+  CancelToken? _cancelToken;
+  TaskProvider() {
+    initAutoReconnect();
+  }
 
   Future<StateResponse> getTaskList() async {
     _taskListState = StateResponse.loading();
     notifyListeners();
     try {
+      cancelTokenNow(_cancelToken, 'cancel due to new request');
+      _cancelToken = CancelToken();
       final response = await EssentialServices.gettaskHistory();
       return response.when(
         success: (data) {
@@ -213,5 +221,17 @@ class TaskProvider with ChangeNotifier {
     selectedStartDate = null;
     selectedEndDate = null;
     notifyListeners();
+  }
+
+  void disposeCancelToken() {
+    cancelTokenNow(_cancelToken, 'cancel due to navigation');
+  }
+
+  @override
+  bool get shouldRetry => true;
+
+  @override
+  onReconnect() {
+    getTaskList();
   }
 }

@@ -4,9 +4,10 @@ import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/core/constants/dimensions.dart';
 import 'package:hellenic_shipping_services/core/constants/images.dart';
 import 'package:hellenic_shipping_services/core/network/api_services/state_response.dart';
+import 'package:hellenic_shipping_services/core/network/interceptors/cache_interceptor.dart';
+import 'package:hellenic_shipping_services/core/network/interceptors/offline_sync_interceptor.dart';
 import 'package:hellenic_shipping_services/core/toasts/toast_manager.dart';
 import 'package:hellenic_shipping_services/core/toasts/toast_widgets.dart';
-import 'package:toastification/toastification.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/routes/route_navigator.dart';
 import 'package:hellenic_shipping_services/routes/routes.dart';
@@ -14,8 +15,6 @@ import 'package:hellenic_shipping_services/screens/widget/components/custom_boar
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_textfield.dart';
 import 'package:hellenic_shipping_services/screens/widget/loading.dart';
-import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart'
-    hide ToastManager;
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -79,24 +78,33 @@ class _LoginScreenState extends State<LoginScreen> {
         closeDialog(context);
 
         if (response2.isSuccess) {
+          await CacheInterceptor.reset();
+          await OfflineSyncInterceptor.reset();
           RouteNavigator.pushReplacementRouted(AppRoutes.nav);
         } else {
-          ToastManager.showSingle(
-            context,
-            title: response2.message,
-            type: ToastificationType.error,
+          ToastManager.showSingleCustom(
+            child: FieldValidation(
+              message: response2.message,
+              icon: Icons.error_outline_rounded,
+            ),
           );
         }
       } else {
         closeDialog(context);
-        ToastManager.showSingle(context, title: 'Login time not selected');
+        ToastManager.showSingleCustom(
+          child: FieldValidation(
+            message: 'Login time not selected',
+            icon: Icons.timer_sharp,
+          ),
+        );
       }
     } else {
       closeDialog(context);
-      ToastManager.showSingle(
-        context,
-        title: response.message,
-        type: ToastificationType.error,
+      ToastManager.showSingleCustom(
+        child: FieldValidation(
+          message: response.message,
+          icon: Icons.error_outline_rounded,
+        ),
       );
     }
   }

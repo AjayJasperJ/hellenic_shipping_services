@@ -7,7 +7,7 @@ import 'package:toastification/toastification.dart';
 
 class ToastManager {
   static ToastificationItem? _current;
-  static void showSingle(
+  static void showSingle1(
     BuildContext context, {
     required String title,
     ToastificationType type = ToastificationType.info,

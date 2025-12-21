@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-
-import 'package:toastification/toastification.dart';
-import 'package:hellenic_shipping_services/screens/widget/other_widgets.dart';
 import 'package:hellenic_shipping_services/data/token_storage.dart';
 import 'package:hellenic_shipping_services/providers/auth_provider.dart';
 import 'package:hellenic_shipping_services/providers/leave_provider.dart';
@@ -25,6 +22,10 @@ class _BottomNavState extends State<BottomNav> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late String? username;
 
+  AuthProvider? _authProvider;
+  LeaveProvider? _leaveProvider;
+  TaskProvider? _taskProvider;
+
   @override
   void initState() {
     super.initState();
@@ -32,44 +33,36 @@ class _BottomNavState extends State<BottomNav> {
       openDialog(context);
       username = await TokenStorage.getdata('username');
       if (!mounted) return;
-      final leaveProvider = context.read<LeaveProvider>();
-      final taskProvider = context.read<TaskProvider>();
-      final authProvider = context.read<AuthProvider>();
-      final isProfile = await authProvider.profile();
+      _authProvider = context.read<AuthProvider>();
+      _leaveProvider = context.read<LeaveProvider>();
+      _taskProvider = context.read<TaskProvider>();
+      final isProfile = await _authProvider!.profile();
 
       if (isProfile.isSuccess) {
         if (!mounted) return;
-        final leaveResponse = await leaveProvider.getleavelist();
+        final leaveResponse = await _leaveProvider!.getleavelist();
 
         if (!mounted) return;
         if (leaveResponse.isSuccess) {
-          final taskResponse = await taskProvider.getTaskList();
+          final taskResponse = await _taskProvider!.getTaskList();
           if (mounted) closeDialog(context);
 
-          if (!taskResponse.isSuccess) {
-            ToastManager.showSingle(
-              context,
-              title: taskResponse.message,
-              type: ToastificationType.error,
-            );
-          }
+          if (!taskResponse.isSuccess) {}
         } else {
           if (mounted) closeDialog(context);
-          ToastManager.showSingle(
-            context,
-            title: leaveResponse.message,
-            type: ToastificationType.error,
-          );
         }
       } else {
         if (mounted) closeDialog(context);
-        ToastManager.showSingle(
-          context,
-          title: isProfile.message,
-          type: ToastificationType.error,
-        );
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _authProvider!.disposeCancelToken();
+    _leaveProvider!.disposeCancelToken();
+    _taskProvider!.disposeCancelToken();
+    super.dispose();
   }
 
   @override

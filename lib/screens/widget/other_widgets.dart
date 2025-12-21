@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gradient_borders/box_borders/gradient_box_border.dart';
-import 'package:hellenic_shipping_services/core/constants/colors.dart';
 import 'package:hellenic_shipping_services/screens/widget/custom_text.dart';
-import 'package:toastification/toastification.dart';
 
 class AnimationConstants {
   static const Duration forwardTransitionDuration = Duration(milliseconds: 400);
@@ -87,51 +83,51 @@ void scaffoldMsg({
   );
 }
 
-class ToastManager {
-  static ToastificationItem? _current;
-  static void showSingle(
-    BuildContext context, {
-    required String title,
-    String? subtitle,
-    ToastificationType type = ToastificationType.info,
-    ToastificationStyle style = ToastificationStyle.flat,
-    Color? textcolor,
-    int duration = 2,
-    Function(ToastificationItem)? onTap,
-  }) {
-    if (_current != null) {
-      Toastification().dismiss(_current!, showRemoveAnimation: false);
-      _current = null;
-    } else {
-      Toastification().dismissAll(delayForAnimation: false);
-    }
-    _current = Toastification().show(
-      dismissDirection: DismissDirection.up,
-      style: style,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      context: context,
-      borderSide: BorderSide(color: Color(0xFFFFBF00)),
-      description: subtitle != null
-          ? Txt(
-              subtitle,
-              color: textcolor ?? Theme.of(context).colorScheme.onSurface,
-              font: Font.medium,
-              size: 13.sp,
-            )
-          : null,
-      title: Txt(
-        title,
-        color: textcolor ?? Theme.of(context).colorScheme.onSurface,
-        font: Font.medium,
-        size: 16.sp,
-      ),
-      type: type,
-      alignment: Alignment.topCenter,
-      autoCloseDuration: Duration(seconds: duration),
-      callbacks: ToastificationCallbacks(onTap: onTap),
-    );
-  }
-}
+// class ToastManager {
+//   static ToastificationItem? _current;
+//   static void showSingle(
+//     BuildContext context, {
+//     required String title,
+//     String? subtitle,
+//     ToastificationType type = ToastificationType.info,
+//     ToastificationStyle style = ToastificationStyle.flat,
+//     Color? textcolor,
+//     int duration = 2,
+//     Function(ToastificationItem)? onTap,
+//   }) {
+//     if (_current != null) {
+//       Toastification().dismiss(_current!, showRemoveAnimation: false);
+//       _current = null;
+//     } else {
+//       Toastification().dismissAll(delayForAnimation: false);
+//     }
+//     _current = Toastification().show(
+//       dismissDirection: DismissDirection.up,
+//       style: style,
+//       backgroundColor: Theme.of(context).colorScheme.surface,
+//       context: context,
+//       borderSide: BorderSide(color: Color(0xFFFFBF00)),
+//       description: subtitle != null
+//           ? Txt(
+//               subtitle,
+//               color: textcolor ?? Theme.of(context).colorScheme.onSurface,
+//               font: Font.medium,
+//               size: 13.sp,
+//             )
+//           : null,
+//       title: Txt(
+//         title,
+//         color: textcolor ?? Theme.of(context).colorScheme.onSurface,
+//         font: Font.medium,
+//         size: 16.sp,
+//       ),
+//       type: type,
+//       alignment: Alignment.topCenter,
+//       autoCloseDuration: Duration(seconds: duration),
+//       callbacks: ToastificationCallbacks(onTap: onTap),
+//     );
+//   }
+// }
 
 Route pageTransition({
   required BuildContext context,

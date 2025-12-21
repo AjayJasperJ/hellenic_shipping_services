@@ -13,19 +13,21 @@ class FieldValidation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        height: Dimen.h70,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(Dimen.r15),
           border: GradientBoxBorder(gradient: AppColors.appTextfield),
         ),
         margin: EdgeInsets.symmetric(horizontal: Dimen.w20),
-        padding: EdgeInsets.symmetric(horizontal: Dimen.w20),
+        padding: EdgeInsets.symmetric(
+          horizontal: Dimen.w20,
+          vertical: Dimen.h20,
+        ),
         child: Row(
           children: [
             Icon(icon, color: AppColors.appSecondary),
             SizedBox(width: Dimen.w10),
-            Txt(message, size: Dimen.s16),
+            Flexible(child: Txt(message, size: Dimen.s16)),
           ],
         ),
       ),

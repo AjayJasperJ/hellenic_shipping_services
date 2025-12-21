@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
@@ -57,6 +58,30 @@ class ApiClient {
           Duration(seconds: 2),
           Duration(seconds: 3),
         ],
+        retryEvaluator: (error, i) {
+          // Don't retry if it's a connection error or no internet
+          if (error.type == DioExceptionType.connectionError ||
+              error.type == DioExceptionType.connectionTimeout ||
+              error.type == DioExceptionType.sendTimeout ||
+              error.type == DioExceptionType.receiveTimeout ||
+              (error.type == DioExceptionType.unknown &&
+                  error.error is SocketException)) {
+            return false;
+          }
+
+          // Don't retry if connectivity service says we are offline
+          if (!ConnectivityService().hasConnection) {
+            return false;
+          }
+
+          // Otherwise use default behavior for other errors (like 5xx)
+          return DefaultRetryEvaluator(const {
+            status500InternalServerError,
+            status502BadGateway,
+            status503ServiceUnavailable,
+            status504GatewayTimeout,
+          }).evaluate(error, i);
+        },
       ),
     );
     _dio.interceptors.add(PerformanceInterceptor());
@@ -310,6 +335,22 @@ class ApiClient {
     for (final interceptor in _dio.interceptors) {
       if (interceptor is OfflineSyncInterceptor) {
         await interceptor.syncQueue();
+      }
+    }
+  }
+
+  Future<void> clearCache() async {
+    for (final interceptor in _dio.interceptors) {
+      if (interceptor is CacheInterceptor) {
+        await interceptor.clearCache();
+      }
+    }
+  }
+
+  Future<void> clearOfflineQueue() async {
+    for (final interceptor in _dio.interceptors) {
+      if (interceptor is OfflineSyncInterceptor) {
+        await interceptor.clearQueue();
       }
     }
   }

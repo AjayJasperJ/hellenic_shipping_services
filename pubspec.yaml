@@ -116,7 +116,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/icon.png"
+  image_path: "assets/images/winter_app.png"
 
 flutter_native_splash:
   color: "#ffffff"       # or your primary color

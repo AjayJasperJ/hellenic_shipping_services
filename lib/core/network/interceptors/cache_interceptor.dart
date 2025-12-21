@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:hellenic_shipping_services/core/network/utils/connectivity_service.dart';
-import 'package:hive/hive.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class CacheInterceptor extends Interceptor {
   final Box _cacheBox;
@@ -9,7 +9,10 @@ class CacheInterceptor extends Interceptor {
   CacheInterceptor(this._cacheBox);
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     // Only cache GET requests
     if (options.method != 'GET') {
       return handler.next(options);
@@ -77,10 +80,11 @@ class CacheInterceptor extends Interceptor {
         if (kDebugMode) print('[CACHE] No cache found for $key');
       }
     } else {
-      if (kDebugMode)
+      if (kDebugMode) {
         print(
           '[CACHE DEBUG] Fallback skipped. Method: ${err.requestOptions.method}, IsNetworkError: ${_isNetworkError(err)}',
         );
+      }
     }
     super.onError(err, handler);
   }
@@ -89,7 +93,8 @@ class CacheInterceptor extends Interceptor {
   dynamic _castToMapStringDynamic(dynamic data) {
     if (data is Map) {
       return data.map<String, dynamic>(
-        (key, value) => MapEntry(key.toString(), _castToMapStringDynamic(value)),
+        (key, value) =>
+            MapEntry(key.toString(), _castToMapStringDynamic(value)),
       );
     } else if (data is List) {
       return data.map((e) => _castToMapStringDynamic(e)).toList();
@@ -103,7 +108,8 @@ class CacheInterceptor extends Interceptor {
         err.type == DioExceptionType.receiveTimeout ||
         err.type == DioExceptionType.sendTimeout ||
         err.type == DioExceptionType.unknown ||
-        (err.error != null && err.error.toString().toLowerCase().contains('socket'));
+        (err.error != null &&
+            err.error.toString().toLowerCase().contains('socket'));
   }
 
   @override
@@ -117,5 +123,23 @@ class CacheInterceptor extends Interceptor {
       _cacheBox.put(key, response.data);
     }
     super.onResponse(response, handler);
+  }
+
+  /// Clears all cached data in the Hive box.
+  Future<void> clearCache() async {
+    await _cacheBox.clear();
+    if (kDebugMode) {
+      print('[CACHE] Cache cleared.');
+    }
+  }
+
+  /// Static helper to clear the cache box if it's open.
+  static Future<void> reset() async {
+    if (Hive.isBoxOpen('api_cache')) {
+      await Hive.box('api_cache').clear();
+      if (kDebugMode) {
+        print('[CACHE] Global cache reset.');
+      }
+    }
   }
 }
