@@ -59,9 +59,7 @@ class ApiClient {
           Duration(seconds: 3),
         ],
         retryEvaluator: (error, i) {
-          // Don't retry if it's a connection error or no internet
-          if (error.type == DioExceptionType.connectionError ||
-              error.type == DioExceptionType.connectionTimeout ||
+          if (error.type == DioExceptionType.connectionTimeout ||
               error.type == DioExceptionType.sendTimeout ||
               error.type == DioExceptionType.receiveTimeout ||
               (error.type == DioExceptionType.unknown &&

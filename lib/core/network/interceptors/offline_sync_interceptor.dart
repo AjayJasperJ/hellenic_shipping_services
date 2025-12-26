@@ -131,7 +131,6 @@ class OfflineSyncInterceptor extends Interceptor {
     if (kDebugMode) print('[SYNC] Sync completed.');
   }
 
-  /// Clears all queued requests in the Hive box.
   Future<void> clearQueue() async {
     await _queueBox.clear();
     if (kDebugMode) {
@@ -139,7 +138,6 @@ class OfflineSyncInterceptor extends Interceptor {
     }
   }
 
-  /// Static helper to clear the offline queue box if it's open.
   static Future<void> reset() async {
     if (Hive.isBoxOpen('offline_queue')) {
       await Hive.box('offline_queue').clear();

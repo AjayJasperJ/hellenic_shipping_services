@@ -9,11 +9,6 @@ Future<void> bootstrap() async {
   await Hive.initFlutter();
   await Hive.openBox('api_cache');
   await Hive.openBox('offline_queue');
-  // try {
-  //   await Environment.load();
-  // } catch (e) {
-  //   debugPrint("Env load failed (expected in production if using build args): $e");
-  // }
   await LoggerService.init();
   LoggerService.initGlobalErrorHandling();
   await ConnectivityService().init();
